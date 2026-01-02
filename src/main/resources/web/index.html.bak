@@ -295,14 +295,6 @@
         </div>
     </div>
 
-    <!-- Help Modal -->
-    <div id="help-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <div id="help-content" class="modal-body">Loading...</div>
-        </div>
-    </div>
-
     <script>
         let currentGenerator = null;
         let generators = [];

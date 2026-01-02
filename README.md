@@ -19,6 +19,12 @@ A lightweight, dependency-free Java framework for creating generative art, speci
     *   Click **"Generate Art"** to see the preview.
     *   The SVG output is rendered in the browser (and can be saved/copied).
 
+## 🖼 Screenshots
+
+| Generative Ribbon | Reaction Diffusion |
+| :---: | :---: |
+| <img src="images/ribbon_ui.png" alt="Generative Ribbon UI" width="400"/> | <img src="images/reaction_ui.png" alt="Reaction Diffusion UI" width="400"/> |
+
 ## 🏗 Architecture
 
 The project is built with a focus on simplicity and zero external dependencies (no Maven/Gradle required for core execution, standard JDK libraries only).
