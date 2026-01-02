@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Art Control Center</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --sidebar-bg: #252526;
+            --accent: #007acc;
+            --input-bg: #3c3c3c;
+            --border: #444;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        #sidebar {
+            width: 300px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Sidebar items */
+        .sidebar-header {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .gen-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .gen-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            transition: background 0.2s;
+        }
+
+        .gen-item:hover {
+            background: #333;
+        }
+
+        .gen-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Controls Panel (Bottom of Sidebar? Or a separate panel? Let's put inputs in sidebar below list for now, or use tabs. Or just show controls for selected item.)
+           Actually, sidebar for list, separate panel for controls? 
+           Let's do: Sidebar = List of Generators. 
+           Main Content = Left: Controls, Right: Preview.
+        */
+
+        #workspace {
+            display: flex;
+            flex: 1;
+            height: 100%;
+            gap: 20px;
+        }
+
+        #controls-pane {
+            width: 300px;
+            background: var(--sidebar-bg);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        #preview-pane {
+            flex: 1;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        button#generate-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        button#generate-btn:hover {
+            background: #0062a3;
+        }
+
+        button#stop-btn {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        button#stop-btn:hover {
+            background: #c0392b !important;
+        }
+
+        /* SVG Preview */
+        #preview-pane svg {
+            max-width: 95%;
+            max-height: 95%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state {
+            color: #555;
+            font-style: italic;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--sidebar-bg);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            line-height: 1.6;
+        }
+
+        /* Simple Markdown Styles */
+        .modal-body h1,
+        .modal-body h2,
+        .modal-body h3 {
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+            color: var(--accent);
+        }
+
+        .modal-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .modal-body th,
+        .modal-body td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .modal-body th {
+            background-color: #333;
+        }
+
+        .modal-body code {
+            background: #333;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .modal-body pre {
+            background: #333;
+            padding: 10px;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <div class="sidebar-header">Generators</div>
+        <ul class="gen-list" id="gen-list">
+            <!-- Items injected here -->
+        </ul>
+    </div>
+
+    <div id="main-content">
+        <div id="workspace">
+            <div id="controls-pane">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3 id="selected-title" style="margin: 0;">Select a Generator</h3>
+                    <button id="help-btn"
+                        style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 1.2rem; display: none;"
+                        title="Show Help">?</button>
+                </div>
+                <div id="params-container"></div>
+                <button id="generate-btn" style="display: none;">Generate Art</button>
+                <button id="stop-btn" style="display: none; background: #e74c3c;">Stop Generation</button>
+                <button id="download-btn"
+                    style="display: none; background: #2d2d2d; margin-top: 10px; width: 100%; padding: 12px; border: 1px solid #444; color: white; border-radius: 4px; cursor: pointer;">Download
+                    SVG</button>
+            </div>
+            <div id="preview-pane">
+                <div class="empty-state">Preview will appear here</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGenerator = null;
+        let generators = [];
+        let abortController = null;
+
+        async function init() {
+            try {
+                const res = await fetch('/api/generators');
+                generators = await res.json();
+                renderList();
+            } catch (e) {
+                console.error("Failed to load generators", e);
+            }
+        }
+
+        function renderList() {
+            const list = document.getElementById('gen-list');
+            list.innerHTML = '';
+            generators.forEach(gen => {
+                const li = document.createElement('li');
+                li.className = 'gen-item';
+                li.textContent = gen.displayName;
+                li.onclick = () => selectGenerator(gen, li);
+                list.appendChild(li);
+            });
+
+            if (generators.length > 0) {
+                // Auto select first? No, let user choose.
+            }
+        }
+
+        function selectGenerator(gen, liElement) {
+            currentGenerator = gen;
+
+            // Update active state
+            document.querySelectorAll('.gen-item').forEach(el => el.classList.remove('active'));
+            liElement.classList.add('active');
+
+            // Update Title
+            document.getElementById('selected-title').textContent = gen.displayName;
+            document.getElementById('generate-btn').style.display = 'block';
+            document.getElementById('stop-btn').style.display = 'none'; // Ensure stop is hidden on switching
+
+            // Build Form
+            const container = document.getElementById('params-container');
+            container.innerHTML = '';
+
+            gen.parameters.forEach(param => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.textContent = param.name; // + (param.description ? ` (${param.description})` : '');
+                label.title = param.description || "";
+                group.appendChild(label);
+
+                let input;
+                if (param.type === 'INTEGER' || param.type === 'DOUBLE') {
+                    // Start with simple number inputs, strictly speaking could be range if min/max exist
+                    input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = param.defaultValue;
+                    if (param.min !== null) input.min = param.min;
+                    if (param.max !== null) input.max = param.max;
+                    if (param.type === 'DOUBLE') input.step = "0.01";
+                } else if (param.type === 'BOOLEAN') {
+                    input = document.createElement('select');
+                    const optTrue = new Option('True', 'true');
+                    const optFalse = new Option('False', 'false');
+                    input.add(optTrue);
+                    input.add(optFalse);
+                    input.value = param.defaultValue.toString();
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = param.defaultValue;
+                }
+
+                input.dataset.key = param.name;
+                input.dataset.type = param.type;
+
+                group.appendChild(input);
+                container.appendChild(group);
+            });
+
+            // Bind generation
+            document.getElementById('generate-btn').onclick = () => generate(gen);
+            document.getElementById('stop-btn').onclick = () => stopGeneration();
+
+            // Bind Help
+            const helpBtn = document.getElementById('help-btn');
+            helpBtn.style.display = 'block';
+            helpBtn.onclick = () => showHelp(gen);
+        }
+
+        async function showHelp(gen) {
+            const modal = document.getElementById('help-modal');
+            const content = document.getElementById('help-content');
+            modal.style.display = "block";
+            content.innerHTML = "Loading...";
+
+            try {
+                const res = await fetch('/api/help?id=' + gen.id);
+                const text = await res.text();
+                content.innerHTML = parseMarkdown(text);
+            } catch (e) {
+                content.innerHTML = "Error loading help: " + e.message;
+            }
+        }
+
+        // Close Modal Logic
+        document.querySelector('.close-btn').onclick = () => {
+            document.getElementById('help-modal').style.display = "none";
+        };
+
+        window.onclick = (event) => {
+            const modal = document.getElementById('help-modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        function parseMarkdown(md) {
+            // Very basic parser
+            let html = md
+                // Headers
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                // Bold
+                .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
+                // Code blocks (inline)
+                .replace(/`([^`]+)`/gim, '<code>$1</code>')
+                // Tables (simple conversion)
+                .replace(/\| (.+) \|/gim, '<tr><td>$1</td></tr>') // Very hacky path for table rows
+                // Fix table header hack
+                .replace(/<tr><td>:---.*<\/td><\/tr>/gim, '')
+                // Restore newlines
+                .replace(/\n/gim, '<br>');
+
+            // Enhance table structure slightly
+            // This regex is too weak for real markdown tables, but might suffice for the simple 3-col tables I wrote.
+            // Let's rely on line-by-line processing for a bit more robustness if needed, but for now let's see.
+            // Actually, simply wrapping lines in <p> or <br> and handling headers might be enough.
+
+            // Re-doing cleaner parse
+            const lines = md.split('\n');
+            let output = "";
+            let inTable = false;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                if (line.startsWith('# ')) {
+                    output += `<h1>${line.substring(2)}</h1>`;
+                } else if (line.startsWith('## ')) {
+                    output += `<h2>${line.substring(3)}</h2>`;
+                } else if (line.startsWith('### ')) {
+                    output += `<h3>${line.substring(4)}</h3>`;
+                } else if (line.startsWith('|')) {
+                    if (!inTable) {
+                        output += '<table>';
+                        inTable = true;
+                    }
+                    const cols = line.split('|').filter(c => c.trim() !== '');
+                    if (line.includes('---')) continue; // Skip separator line
+                    output += '<tr>' + cols.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+                } else {
+                    if (inTable) { output += '</table>'; inTable = false; }
+                    if (line.length > 0)
+                        output += `<p>${line.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/`(.*?)`/g, '<code>$1</code>')}</p>`;
+                }
+            }
+            if (inTable) output += '</table>';
+
+            return output;
+        }
+
+        function stopGeneration() {
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+            }
+        }
+
+        async function generate(gen) {
+            const btn = document.getElementById('generate-btn');
+            const stopBtn = document.getElementById('stop-btn');
+
+            btn.style.display = 'none';
+            stopBtn.style.display = 'block';
+
+            abortController = new AbortController();
+
+            try {
+                const payload = { id: gen.id };
+
+                // Collect params
+                document.querySelectorAll('#params-container input, #params-container select').forEach(input => {
+                    let val = input.value;
+                    const type = input.dataset.type;
+
+                    if (type === 'INTEGER') {
+                        val = parseInt(val, 10);
+                    } else if (type === 'DOUBLE') {
+                        val = parseFloat(val);
+                    } else if (type === 'BOOLEAN') {
+                        val = (val === 'true');
+                    }
+
+                    payload[input.dataset.key] = val;
+                });
+
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: abortController.signal
+                });
+
+                if (!res.ok) throw new Error(await res.text());
+
+                const svgContent = await res.text();
+
+                const preview = document.getElementById('preview-pane');
+                preview.innerHTML = svgContent;
+
+                // Ensure SVG scales
+                const svgEl = preview.querySelector('svg');
+                if (svgEl) {
+                    svgEl.style.width = '100%';
+                    svgEl.style.height = '100%';
+                }
+
+                // Show Download Button
+                const dlBtn = document.getElementById('download-btn');
+                if (dlBtn) {
+                    dlBtn.style.display = 'block';
+                    dlBtn.onclick = () => downloadSVG(gen.displayName, svgContent);
+                }
+
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    console.log("Generation stopped by user");
+                } else {
+                    alert("Error: " + e.message);
+                }
+            } finally {
+                btn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                abortController = null;
+            }
+        }
+
+        function downloadSVG(name, content) {
+            const blob = new Blob([content], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const safeName = name.toLowerCase().replace(/\s+/g, '_');
+
+            a.href = url;
+            a.download = `${safeName}_${timestamp}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
