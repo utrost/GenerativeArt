@@ -44,7 +44,8 @@ public class GenerativeRibbon implements ArtGenerator {
         return List.of(
                 ParameterDefinition.integer("Lines", NUM_LINES, 500, 20000, "Density of the ribbon"),
                 ParameterDefinition.doubleVal("Length (Max T)", MAX_T, 5.0, 100.0, "Length of the ribbon"),
-                ParameterDefinition.doubleVal("Scale", SCALE, 0.5, 5.0, "Zoom level"));
+                ParameterDefinition.doubleVal("Scale", SCALE, 0.5, 5.0, "Zoom level"),
+                ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers"));
     }
 
     @Override
@@ -53,6 +54,7 @@ public class GenerativeRibbon implements ArtGenerator {
         int numLines = (int) params.getOrDefault("Lines", NUM_LINES);
         double maxT = (double) params.getOrDefault("Length (Max T)", MAX_T);
         this.currentScale = (double) params.getOrDefault("Scale", SCALE);
+        int numColors = (int) params.getOrDefault("Colors", 1);
 
         // Dimensions
         double width = 1000;
@@ -65,26 +67,12 @@ public class GenerativeRibbon implements ArtGenerator {
         this.centerX = width / 2;
         this.centerY = height / 2;
 
-        return generateSVG(numLines, maxT, width, height);
+        return generateSVG(numLines, maxT, width, height, numColors);
     }
 
-    private String generateSVG(int numLines, double maxT, double width, double height) {
-        StringBuilder svg = new StringBuilder();
-        svg.append(String.format(java.util.Locale.US,
-                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 %.1f %.1f' width='%.1f' height='%.1f'>\n", width,
-                height, width, height));
-
-        // Background
-        svg.append(String.format(java.util.Locale.US, "<rect width='%.1f' height='%.1f' fill='white' />\n", width,
-                height));
-
-        // Clip Path Definition
-        svg.append(String.format(java.util.Locale.US,
-                "<defs><clipPath id='pageClip'><rect width='%.1f' height='%.1f'/></clipPath></defs>\n",
-                width, height));
-
-        // Content Group with Clipping (Rotation removed)
-        svg.append(String.format(java.util.Locale.US, "<g clip-path='url(#pageClip)'>"));
+    private String generateSVG(int numLines, double maxT, double width, double height, int numColors) {
+        org.trostheide.generativeArt.core.SvgCanvas canvas = new org.trostheide.generativeArt.core.SvgCanvas(width,
+                height, numColors);
 
         for (int i = 0; i < numLines; i++) {
             double t = (double) i / numLines * maxT;
@@ -95,14 +83,12 @@ public class GenerativeRibbon implements ArtGenerator {
             Point2D p1 = project(p1_3d);
             Point2D p2 = project(p2_3d);
 
-            svg.append(String.format(java.util.Locale.US,
-                    "<line x1='%.2f' y1='%.2f' x2='%.2f' y2='%.2f' stroke='black' stroke-width='0.5' opacity='0.6' />\n",
-                    p1.x(), p1.y(), p2.x(), p2.y()));
+            // Distribute across layers
+            int layerIndex = i % numColors;
+            canvas.addLine(layerIndex, p1.x(), p1.y(), p2.x(), p2.y());
         }
 
-        svg.append("</g>\n");
-        svg.append("</svg>");
-        return svg.toString();
+        return canvas.toSvg();
     }
 
     // --- Math Helpers ---

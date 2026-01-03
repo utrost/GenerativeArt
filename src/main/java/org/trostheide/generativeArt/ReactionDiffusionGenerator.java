@@ -16,7 +16,6 @@ public class ReactionDiffusionGenerator implements ArtGenerator {
     private double db = 0.5;
     private double f = 0.055;
     private double k = 0.062;
-    private double isoThreshold = 0.25;
 
     @Override
     public String getId() {
@@ -34,8 +33,9 @@ public class ReactionDiffusionGenerator implements ArtGenerator {
                 ParameterDefinition.doubleVal("Feed Rate", 0.055, 0.01, 0.1, "Feed rate (f)"),
                 ParameterDefinition.doubleVal("Kill Rate", 0.062, 0.01, 0.1, "Kill rate (k)"),
                 ParameterDefinition.integer("Iterations", 8000, 1000, 20000, "Simulation steps"),
-                ParameterDefinition.doubleVal("Threshold", 0.25, 0.1, 0.9, "Iso-contour threshold"),
-                ParameterDefinition.integer("Scale", 2, 1, 5, "Output scale"));
+                ParameterDefinition.doubleVal("Threshold", 0.25, 0.1, 0.9, "Start iso-contour threshold"),
+                ParameterDefinition.integer("Scale", 2, 1, 5, "Output scale"),
+                ParameterDefinition.integer("Colors", 1, 1, 6, "Number of layers (contours)"));
     }
 
     @Override
@@ -43,21 +43,36 @@ public class ReactionDiffusionGenerator implements ArtGenerator {
 
         int totalW = width * scale;
         int totalH = height * scale;
+        double startThreshold = (double) params.getOrDefault("Threshold", 0.25);
+        int numColors = (int) params.getOrDefault("Colors", 1);
 
+        // Ensure simulation is run
         Simulation sim = new Simulation(width, height, da, db, f, k);
         sim.run(iterations);
-        String paths = MarchingSquares.vectorize(sim.b, width, height, isoThreshold);
 
-        return String.format(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 %d %d\" width=\"%d\" height=\"%d\" style=\"background-color:white\">\n"
-                        +
-                        "  <defs><clipPath id='pageClip'><rect width='%d' height='%d'/></clipPath></defs>\n" +
-                        "  <g transform=\"scale(%d)\" clip-path=\"url(#pageClip)\">\n" +
-                        "    <path d=\"%s\" fill=\"none\" stroke=\"black\" stroke-width=\"1.5\" stroke-linecap=\"round\" />\n"
-                        +
-                        "  </g>\n" +
-                        "</svg>",
-                totalW, totalH, totalW, totalH, totalW, totalH, scale, paths);
+        org.trostheide.generativeArt.core.SvgCanvas canvas = new org.trostheide.generativeArt.core.SvgCanvas(totalW,
+                totalH, numColors);
+
+        // Generate contours for each layer
+        for (int i = 0; i < numColors; i++) {
+            // Vary threshold slightly for each layer to create concentric rings
+            // e.g., 0.2, 0.25, 0.3...
+            double threshold = startThreshold + (i * 0.05);
+            if (threshold >= 1.0)
+                threshold = 0.99;
+
+            String paths = MarchingSquares.vectorize(sim.b, width, height, threshold);
+
+            String groupContent = String.format(java.util.Locale.US,
+                    "<g transform='scale(%d)'>\n" +
+                            "<path d='%s' fill='none' stroke-width='1.5' stroke-linecap='round' />\n" +
+                            "</g>",
+                    scale, paths);
+
+            canvas.addRaw(i, groupContent);
+        }
+
+        return canvas.toSvg();
     }
 
     // --- Simulation ---

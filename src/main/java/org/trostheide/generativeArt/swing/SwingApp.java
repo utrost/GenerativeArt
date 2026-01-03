@@ -6,6 +6,7 @@ import org.trostheide.generativeArt.LSystemGenerator;
 import org.trostheide.generativeArt.ReactionDiffusionGenerator;
 import org.trostheide.generativeArt.GenerativeRibbon;
 import org.trostheide.generativeArt.FlowFieldGenerator;
+import org.trostheide.generativeArt.HarmonographGenerator;
 
 import javax.swing.*;
 
@@ -16,6 +17,7 @@ public class SwingApp {
         GeneratorRegistry.register(new FlowFieldGenerator());
         GeneratorRegistry.register(new LSystemGenerator());
         GeneratorRegistry.register(new ReactionDiffusionGenerator());
+        GeneratorRegistry.register(new HarmonographGenerator());
 
         // Setup UI
         FlatDarkLaf.setup();
