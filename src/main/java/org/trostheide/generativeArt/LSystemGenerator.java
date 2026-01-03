@@ -3,18 +3,12 @@ package org.trostheide.generativeArt;
 import org.trostheide.generativeArt.core.ArtGenerator;
 import org.trostheide.generativeArt.core.ParameterDefinition;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 public class LSystemGenerator implements ArtGenerator {
-
-    private int iterations = 4;
-    private String axiom = "F";
-    private String rulesStr = "F:F+F-F-F+F"; // Simple format: Char:Replacement;Char:Replacement
-    private double angleDegrees = 90.0;
-    private double lineLength = 10.0;
-    private double initialX = 200;
-    private double initialY = 600;
 
     @Override
     public String getId() {
@@ -38,91 +32,78 @@ public class LSystemGenerator implements ArtGenerator {
 
     @Override
     public String generate(Map<String, Object> params) {
-        if (params.containsKey("Iterations"))
-            this.iterations = ((Number) params.get("Iterations")).intValue();
-        if (params.containsKey("Angle"))
-            this.angleDegrees = ((Number) params.get("Angle")).doubleValue();
-        if (params.containsKey("Line Length"))
-            this.lineLength = ((Number) params.get("Line Length")).doubleValue();
-        if (params.containsKey("Axiom"))
-            this.axiom = (String) params.get("Axiom");
-        if (params.containsKey("Rules"))
-            this.rulesStr = (String) params.get("Rules");
+        // Params
+        int iterations = (int) params.getOrDefault("Iterations", 4);
+        double angle = (double) params.getOrDefault("Angle", 90.0);
+        double length = (double) params.getOrDefault("Line Length", 10.0);
+        String axiom = (String) params.getOrDefault("Axiom", "F");
+        String rulesStr = (String) params.getOrDefault("Rules", "F:F+F-F-F+F");
 
-        Map<Character, String> rules = parseRules(rulesStr);
-        String lSystemString = generateLSystemString(axiom, rules, iterations);
-        return interpretLSystem(lSystemString);
-    }
+        // Dimensions
+        double width = 1000;
+        double height = 1000;
+        if (params.containsKey("width"))
+            width = ((Number) params.get("width")).doubleValue();
+        if (params.containsKey("height"))
+            height = ((Number) params.get("height")).doubleValue();
 
-    private Map<Character, String> parseRules(String rulesStr) {
-        // Basic parsing: split by semicolon, then by colon
-        // Example: F:F+F-F-F+F;X:X+Y
-        try {
-            return java.util.Arrays.stream(rulesStr.split(";"))
-                    .map(s -> s.split(":", 2))
-                    .filter(parts -> parts.length == 2)
-                    .collect(java.util.stream.Collectors.toMap(
-                            parts -> parts[0].charAt(0),
-                            parts -> parts[1]));
-        } catch (Exception e) {
-            return Map.of('F', "F+F-F-F+F"); // Fallback
+        // Parse Rules
+        Map<Character, String> rules = new HashMap<>();
+        for (String part : rulesStr.split(";")) {
+            String[] kv = part.split(":");
+            if (kv.length == 2)
+                rules.put(kv[0].charAt(0), kv[1]);
         }
-    }
 
-    private String generateLSystemString(String current, Map<Character, String> rules, int steps) {
-        for (int i = 0; i < steps; i++) {
-            StringBuilder next = new StringBuilder();
+        // Expand
+        String current = axiom;
+        for (int i = 0; i < iterations; i++) {
+            StringBuilder sb = new StringBuilder();
             for (char c : current.toCharArray()) {
-                next.append(rules.getOrDefault(c, String.valueOf(c)));
+                sb.append(rules.getOrDefault(c, String.valueOf(c)));
             }
-            current = next.toString();
+            current = sb.toString();
         }
-        return current;
-    }
 
-    private String interpretLSystem(String lSystemString) {
-        StringBuilder pathBuilder = new StringBuilder();
-        // Start roughly center-ish but this depends heavily on the fractal
-        // For MVP we'll use a fixed start or maybe dynamic bounds calculation (complex)
-        // Sticking to original logic for now
-        pathBuilder.append(String.format("M %.2f %.2f ", initialX, initialY));
+        // Draw
+        double x = width * 0.2;
+        double y = height * 0.8;
+        double currentAngle = 0; // facing right
 
-        double currentX = initialX;
-        double currentY = initialY;
-        double currentAngle = 0;
+        StringBuilder path = new StringBuilder();
+        path.append(String.format(java.util.Locale.US, "M %.1f %.1f", x, y));
 
-        // Auto-centering logic allows for better SVG handling
-        // But for now, let's just stick to the SVG path generation
-        // A real robust system would calculate bounds first.
-        // Let's implement min/max tracking to set viewBox properly.
+        Stack<double[]> stack = new Stack<>();
 
-        // Pass 1: Trace to find bounds
-        // (Skipping for brevity, will rely on static 1000x1000 for now like original)
-
-        for (char command : lSystemString.toCharArray()) {
-            switch (command) {
-                case 'F':
-                    double newX = currentX + lineLength * Math.cos(Math.toRadians(currentAngle));
-                    double newY = currentY + lineLength * Math.sin(Math.toRadians(currentAngle));
-                    pathBuilder.append(String.format("L %.2f %.2f ", newX, newY));
-                    currentX = newX;
-                    currentY = newY;
-                    break;
-                case '+':
-                    currentAngle += angleDegrees;
-                    break;
-                case '-':
-                    currentAngle -= angleDegrees;
-                    break;
-                // Add push/pop support '[' and ']' for branching plants later
+        for (char c : current.toCharArray()) {
+            if (c == 'F' || c == 'G') {
+                double x2 = x + Math.cos(Math.toRadians(currentAngle)) * length;
+                double y2 = y + Math.sin(Math.toRadians(currentAngle)) * length;
+                path.append(String.format(java.util.Locale.US, " L %.1f %.1f", x2, y2));
+                x = x2;
+                y = y2;
+            } else if (c == '+') {
+                currentAngle += angle;
+            } else if (c == '-') {
+                currentAngle -= angle;
+            } else if (c == '[') {
+                stack.push(new double[] { x, y, currentAngle });
+            } else if (c == ']') {
+                if (!stack.isEmpty()) {
+                    double[] state = stack.pop();
+                    x = state[0];
+                    y = state[1];
+                    currentAngle = state[2];
+                    path.append(String.format(java.util.Locale.US, " M %.1f %.1f", x, y));
+                }
             }
         }
 
-        return String.format(
-                "<svg width=\"1000\" height=\"1000\" viewBox=\"0 0 1000 1000\" xmlns=\"http://www.w3.org/2000/svg\" style=\"background: white\">\n"
-                        +
-                        "    <path d=\"%s\" stroke=\"black\" fill=\"none\" stroke-width=\"1\"/>\n" +
-                        "</svg>",
-                pathBuilder.toString());
+        return String.format(java.util.Locale.US,
+                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 %.1f %.1f' width='%.1f' height='%.1f'>\n" +
+                        "<defs><clipPath id='pageClip'><rect width='%.1f' height='%.1f'/></clipPath></defs>\n" +
+                        "<rect width='%.1f' height='%.1f' fill='white'/>\n" +
+                        "<g clip-path='url(#pageClip)'><path d='%s' stroke='black' fill='none' stroke-width='1'/></g>\n</svg>",
+                width, height, width, height, width, height, width, height, path.toString());
     }
 }

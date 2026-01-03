@@ -9,17 +9,8 @@ import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 
 public class FlowFieldGenerator implements ArtGenerator {
-
-    private int width = 1000;
-    private int height = 1000;
-    private int numParticles = 2000;
-    private double noiseScale = 0.005;
-    private int stepSize = 10;
-    private int maxSteps = 100;
-    private long seed = 12345;
 
     private static final DecimalFormat df;
     static {
@@ -50,54 +41,59 @@ public class FlowFieldGenerator implements ArtGenerator {
 
     @Override
     public String generate(Map<String, Object> params) {
-        // Params
-        if (params.containsKey("Particles"))
-            this.numParticles = ((Number) params.get("Particles")).intValue();
-        if (params.containsKey("Noise Scale"))
-            this.noiseScale = ((Number) params.get("Noise Scale")).doubleValue();
-        if (params.containsKey("Step Length"))
-            this.stepSize = ((Number) params.get("Step Length")).intValue();
-        if (params.containsKey("Max Steps"))
-            this.maxSteps = ((Number) params.get("Max Steps")).intValue();
-        if (params.containsKey("Seed"))
-            this.seed = ((Number) params.get("Seed")).longValue();
+        // Parameters
+        int numParticles = (int) params.getOrDefault("Particles", 2000);
+        double noiseScale = (double) params.getOrDefault("Noise Scale", 0.002);
+        int stepLen = (int) params.getOrDefault("Step Length", 5);
+        int maxSteps = (int) params.getOrDefault("Max Steps", 50);
+        int seed = (int) params.getOrDefault("Seed", 42);
+
+        // Dimensions
+        double width = 1000;
+        double height = 1000;
+        if (params.containsKey("width"))
+            width = ((Number) params.get("width")).doubleValue();
+        if (params.containsKey("height"))
+            height = ((Number) params.get("height")).doubleValue();
 
         PerlinNoise noise = new PerlinNoise(seed);
-        Random rand = new Random(seed);
         StringBuilder svg = new StringBuilder();
+        svg.append(String.format(java.util.Locale.US,
+                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 %.1f %.1f' width='%.1f' height='%.1f'>\n", width,
+                height, width, height));
+        svg.append(String.format(java.util.Locale.US, "<rect width='%.1f' height='%.1f' fill='white' />\n", width,
+                height));
 
-        svg.append(String.format(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\" style=\"background-color:white\">\n",
-                width, height, width, height));
+        // Clip Path
+        svg.append(String.format(java.util.Locale.US,
+                "<defs><clipPath id='pageClip'><rect width='%.1f' height='%.1f'/></clipPath></defs>\n",
+                width, height));
+        svg.append("<g clip-path='url(#pageClip)'>\n");
+
+        java.util.Random rand = new java.util.Random(seed);
 
         for (int i = 0; i < numParticles; i++) {
-            // Start at random position
             double x = rand.nextDouble() * width;
             double y = rand.nextDouble() * height;
 
-            svg.append("<path d=\"M ").append(df.format(x)).append(" ").append(df.format(y));
+            // Fix: Use double quote for the d attribute to avoid parser errors
+            svg.append("<path d=\"M ").append(String.format(java.util.Locale.US, "%.1f %.1f", x, y));
 
-            for (int step = 0; step < maxSteps; step++) {
-                // Get noise value at current pos
-                double angle = noise.noise(x * noiseScale, y * noiseScale) * Math.PI * 4; // Map 0..1 to 0..4PI (2
-                                                                                          // rotations)
+            for (int s = 0; s < maxSteps; s++) {
+                double angle = noise.noise(x * noiseScale, y * noiseScale) * Math.PI * 4;
+                double nextX = x + Math.cos(angle) * stepLen;
+                double nextY = y + Math.sin(angle) * stepLen;
 
-                double nextX = x + Math.cos(angle) * stepSize;
-                double nextY = y + Math.sin(angle) * stepSize;
-
-                // Stop if out of bounds
-                if (nextX < 0 || nextX > width || nextY < 0 || nextY > height) {
-                    break;
-                }
-
+                // Stop if out of bounds (Check could be added here)
                 svg.append(" L ").append(df.format(nextX)).append(" ").append(df.format(nextY));
 
                 x = nextX;
                 y = nextY;
             }
+            // Closing with double quote as well
             svg.append("\" fill=\"none\" stroke=\"black\" stroke-width=\"0.5\" opacity=\"0.5\" />\n");
         }
-
+        svg.append("</g>\n");
         svg.append("</svg>");
         return svg.toString();
     }

@@ -13,18 +13,16 @@ import java.util.Map;
 
 public class GenerativeRibbon implements ArtGenerator {
 
-    // Canvas dimensions (Instance variables now)
-    private int width = 1000;
-    private int height = 1000;
-    private int centerX = width / 2;
-    private int centerY = height / 2;
+    // Default Configuration
+    private static final int NUM_LINES = 6000;
+    private static final double MAX_T = 25.0;
+    private static final double SCALE = 2.0;
 
-    // Configuration for the visual style
-    private int numLines = 6000;
-    private double maxT = 25.0;
-    private double scale = 2.0;
+    // Instance variables for calculations
+    private double currentScale = SCALE;
+    private double centerX = 500;
+    private double centerY = 500;
 
-    // Ensure SVG uses dots for decimals
     private static final DecimalFormat df;
     static {
         df = new DecimalFormat("#.##");
@@ -44,76 +42,70 @@ public class GenerativeRibbon implements ArtGenerator {
     @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
-                ParameterDefinition.integer("Lines", 6000, 500, 20000, "Density of the ribbon"),
-                ParameterDefinition.doubleVal("Length (Max T)", 25.0, 5.0, 100.0, "Length of the ribbon"),
-                ParameterDefinition.doubleVal("Scale", 2.0, 0.5, 5.0, "Zoom level")
-        // We could add width/height here if we wanted
-        );
+                ParameterDefinition.integer("Lines", NUM_LINES, 500, 20000, "Density of the ribbon"),
+                ParameterDefinition.doubleVal("Length (Max T)", MAX_T, 5.0, 100.0, "Length of the ribbon"),
+                ParameterDefinition.doubleVal("Scale", SCALE, 0.5, 5.0, "Zoom level"));
     }
 
     @Override
     public String generate(Map<String, Object> params) {
-        // Update state from params
-        if (params.containsKey("Lines"))
-            this.numLines = ((Number) params.get("Lines")).intValue();
-        if (params.containsKey("Length (Max T)"))
-            this.maxT = ((Number) params.get("Length (Max T)")).doubleValue();
-        if (params.containsKey("Scale"))
-            this.scale = ((Number) params.get("Scale")).doubleValue();
+        // Read Params
+        int numLines = (int) params.getOrDefault("Lines", NUM_LINES);
+        double maxT = (double) params.getOrDefault("Length (Max T)", MAX_T);
+        this.currentScale = (double) params.getOrDefault("Scale", SCALE);
 
-        // Recalculate centers if width/height changed (not exposed yet but good
-        // practice)
-        this.centerX = this.width / 2;
-        this.centerY = this.height / 2;
+        // Dimensions
+        double width = 1000;
+        double height = 1000;
+        if (params.containsKey("width"))
+            width = ((Number) params.get("width")).doubleValue();
+        if (params.containsKey("height"))
+            height = ((Number) params.get("height")).doubleValue();
 
-        StringBuilder svgContent = new StringBuilder();
+        this.centerX = width / 2;
+        this.centerY = height / 2;
 
-        // 1. SVG Header
-        svgContent.append(String.format(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\" style=\"background-color:white\">\n",
-                width, height, width, height));
+        return generateSVG(numLines, maxT, width, height);
+    }
 
-        // Optional: Add a group with a slight rotation
-        svgContent.append(String.format("<g transform=\"rotate(-20, %d, %d)\">", centerX, centerY));
+    private String generateSVG(int numLines, double maxT, double width, double height) {
+        StringBuilder svg = new StringBuilder();
+        svg.append(String.format(java.util.Locale.US,
+                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 %.1f %.1f' width='%.1f' height='%.1f'>\n", width,
+                height, width, height));
 
-        // 2. The main generation loop
+        // Background
+        svg.append(String.format(java.util.Locale.US, "<rect width='%.1f' height='%.1f' fill='white' />\n", width,
+                height));
+
+        // Clip Path Definition
+        svg.append(String.format(java.util.Locale.US,
+                "<defs><clipPath id='pageClip'><rect width='%.1f' height='%.1f'/></clipPath></defs>\n",
+                width, height));
+
+        // Content Group with Clipping (Rotation removed)
+        svg.append(String.format(java.util.Locale.US, "<g clip-path='url(#pageClip)'>"));
+
         for (int i = 0; i < numLines; i++) {
-            double progress = (double) i / numLines;
-            double t = progress * maxT;
+            double t = (double) i / numLines * maxT;
 
             Point3D p1_3d = calculatePathA(t);
             Point3D p2_3d = calculatePathB(t);
 
-            Point2D p1_2d = project(p1_3d);
-            Point2D p2_2d = project(p2_3d);
+            Point2D p1 = project(p1_3d);
+            Point2D p2 = project(p2_3d);
 
-            svgContent.append(String.format(
-                    "  <line x1=\"%s\" y1=\"%s\" x2=\"%s\" y2=\"%s\" stroke=\"black\" stroke-width=\"0.5\" opacity=\"0.8\" />\n",
-                    df.format(p1_2d.x), df.format(p1_2d.y),
-                    df.format(p2_2d.x), df.format(p2_2d.y)));
+            svg.append(String.format(java.util.Locale.US,
+                    "<line x1='%.2f' y1='%.2f' x2='%.2f' y2='%.2f' stroke='black' stroke-width='0.5' opacity='0.6' />\n",
+                    p1.x(), p1.y(), p2.x(), p2.y()));
         }
 
-        // 3. SVG Footer
-        svgContent.append("</g>\n");
-        svgContent.append("</svg>");
-
-        return svgContent.toString();
+        svg.append("</g>\n");
+        svg.append("</svg>");
+        return svg.toString();
     }
 
-    public static void main(String[] args) {
-        // CLI Wrapper just uses default instance
-        GenerativeRibbon generator = new GenerativeRibbon();
-        String svg = generator.generate(Map.of()); // Empty map uses defaults
-
-        try (FileWriter fileWriter = new FileWriter("ribbon.svg")) {
-            fileWriter.write(svg);
-            System.out.println("Successfully generated 'ribbon.svg'");
-        } catch (IOException e) {
-            System.err.println("Error writing SVG file: " + e.getMessage());
-        }
-    }
-
-    // --- Instance Methods for Math (accessing instance scale) ---
+    // --- Math Helpers ---
 
     private Point3D calculatePathA(double t) {
         double baseX = Math.sin(t * 0.7) * 200;
@@ -125,9 +117,9 @@ public class GenerativeRibbon implements ArtGenerator {
         double offsetZ = Math.cos(t * 3.7 + 1.0) * 60;
 
         return new Point3D(
-                (baseX + offsetX) * scale,
-                (baseY + offsetY) * scale,
-                (baseZ + offsetZ) * scale);
+                (baseX + offsetX) * currentScale,
+                (baseY + offsetY) * currentScale,
+                (baseZ + offsetZ) * currentScale);
     }
 
     private Point3D calculatePathB(double t) {
@@ -140,9 +132,9 @@ public class GenerativeRibbon implements ArtGenerator {
         double offsetZ = Math.cos(t * 3.7 + Math.PI + 1.0) * 70;
 
         return new Point3D(
-                (baseX + offsetX) * scale,
-                (baseY + offsetY) * scale,
-                (baseZ + offsetZ) * scale);
+                (baseX + offsetX) * currentScale,
+                (baseY + offsetY) * currentScale,
+                (baseZ + offsetZ) * currentScale);
     }
 
     private Point2D project(Point3D p) {
@@ -152,10 +144,21 @@ public class GenerativeRibbon implements ArtGenerator {
         return new Point2D(x2d, y2d);
     }
 
-    // Using records is fine (Java 17)
+    // Records
     record Point3D(double x, double y, double z) {
     }
 
     record Point2D(double x, double y) {
+    }
+
+    public static void main(String[] args) {
+        GenerativeRibbon generator = new GenerativeRibbon();
+        String svg = generator.generate(Map.of());
+        try (FileWriter fileWriter = new FileWriter("ribbon.svg")) {
+            fileWriter.write(svg);
+            System.out.println("Generated ribbon.svg");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

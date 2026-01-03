@@ -40,34 +40,24 @@ public class ReactionDiffusionGenerator implements ArtGenerator {
 
     @Override
     public String generate(Map<String, Object> params) {
-        if (params.containsKey("Feed Rate"))
-            this.f = ((Number) params.get("Feed Rate")).doubleValue();
-        if (params.containsKey("Kill Rate"))
-            this.k = ((Number) params.get("Kill Rate")).doubleValue();
-        if (params.containsKey("Iterations"))
-            this.iterations = ((Number) params.get("Iterations")).intValue();
-        if (params.containsKey("Threshold"))
-            this.isoThreshold = ((Number) params.get("Threshold")).doubleValue();
-        if (params.containsKey("Scale"))
-            this.scale = ((Number) params.get("Scale")).intValue();
-
-        Simulation sim = new Simulation(width, height, da, db, f, k);
-        sim.run(iterations);
-
-        String paths = MarchingSquares.vectorize(sim.b, width, height, isoThreshold);
 
         int totalW = width * scale;
         int totalH = height * scale;
 
+        Simulation sim = new Simulation(width, height, da, db, f, k);
+        sim.run(iterations);
+        String paths = MarchingSquares.vectorize(sim.b, width, height, isoThreshold);
+
         return String.format(
                 "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 %d %d\" width=\"%d\" height=\"%d\" style=\"background-color:white\">\n"
                         +
-                        "  <g transform=\"scale(%d)\">\n" +
+                        "  <defs><clipPath id='pageClip'><rect width='%d' height='%d'/></clipPath></defs>\n" +
+                        "  <g transform=\"scale(%d)\" clip-path=\"url(#pageClip)\">\n" +
                         "    <path d=\"%s\" fill=\"none\" stroke=\"black\" stroke-width=\"1.5\" stroke-linecap=\"round\" />\n"
                         +
                         "  </g>\n" +
                         "</svg>",
-                totalW, totalH, totalW, totalH, scale, paths);
+                totalW, totalH, totalW, totalH, totalW, totalH, scale, paths);
     }
 
     // --- Simulation ---
