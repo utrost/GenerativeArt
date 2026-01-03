@@ -2,7 +2,6 @@ package org.trostheide.generativeArt.swing;
 
 import org.trostheide.generativeArt.core.ArtGenerator;
 import org.trostheide.generativeArt.core.ParameterDefinition;
-import org.trostheide.generativeArt.core.ParameterType;
 import org.trostheide.generativeArt.core.PaperSize;
 
 import javax.swing.*;
