@@ -10,10 +10,18 @@ A powerful, extensible Java framework for creating generative art, optimized for
 
 ### Running the App
 1.  **Launch via Script:**
-    ```bash
-    ./run.sh
-    ```
-    This script compiles the project using Maven and launches the Swing GUI.
+
+    *   **macOS / Linux**:
+        ```bash
+        ./run.sh
+        ```
+    *   **Windows**:
+        Double-click `start_gui.bat` or run from a terminal:
+        ```cmd
+        .\start_gui.bat
+        ```
+    
+    These scripts compile the project using Maven and launch the Swing GUI.
 
 2.  **Generate Art:**
     *   Select an algorithm from the sidebar (e.g., "Phyllotaxis").
