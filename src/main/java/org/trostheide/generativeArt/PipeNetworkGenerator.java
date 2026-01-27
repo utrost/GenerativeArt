@@ -75,6 +75,7 @@ public class PipeNetworkGenerator implements ArtGenerator {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String generate(Map<String, Object> params) {
         int rows = (int) params.getOrDefault("rows", 10);
         int cols = (int) params.getOrDefault("cols", 10);
@@ -239,6 +240,7 @@ public class PipeNetworkGenerator implements ArtGenerator {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     private List<Tile>[][] cloneWave(List<Tile>[][] source, int rows, int cols) {
         List<Tile>[][] dest = new ArrayList[rows][cols];
         for (int r = 0; r < rows; r++) {

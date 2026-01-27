@@ -111,6 +111,11 @@ public class ParametersPanel extends JPanel {
                 return check;
 
             case STRING:
+                if (param.options() != null && !param.options().isEmpty()) {
+                    JComboBox<String> combo = new JComboBox<>(param.options().toArray(new String[0]));
+                    combo.setSelectedItem(param.defaultValue());
+                    return combo;
+                }
                 JTextField text = new JTextField((String) param.defaultValue());
                 return text;
 
@@ -136,6 +141,8 @@ public class ParametersPanel extends JPanel {
                 values.put(entry.getKey(), ((JCheckBox) input).isSelected());
             } else if (input instanceof JTextField) {
                 values.put(entry.getKey(), ((JTextField) input).getText());
+            } else if (input instanceof JComboBox) {
+                values.put(entry.getKey(), ((JComboBox<?>) input).getSelectedItem());
             }
         }
         return values;
