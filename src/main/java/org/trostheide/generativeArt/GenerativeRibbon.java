@@ -1,140 +1,150 @@
 package org.trostheide.generativeArt;
 
+import org.trostheide.generativeArt.core.ArtGenerator;
+import org.trostheide.generativeArt.core.ParameterDefinition;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-public class GenerativeRibbon {
+public class GenerativeRibbon implements ArtGenerator {
 
-    // Canvas dimensions
-    private static final int WIDTH = 1000;
-    private static final int HEIGHT = 1000;
-    private static final int CENTER_X = WIDTH / 2;
-    private static final int CENTER_Y = HEIGHT / 2;
-
-    // Configuration for the visual style
-    // The higher the number, the denser and darker the ribbon becomes.
+    // Default Configuration
     private static final int NUM_LINES = 6000;
-    // How long the mathematical path runs. Higher means more loops.
     private static final double MAX_T = 25.0;
-    // Global scaling factor to fit the math onto the canvas size
     private static final double SCALE = 2.0;
 
-    // Ensure SVG uses dots for decimals, regardless of locale
+    // Instance variables for calculations
+    private double currentScale = SCALE;
+    private double centerX = 500;
+    private double centerY = 500;
+
     private static final DecimalFormat df;
     static {
         df = new DecimalFormat("#.##");
         df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ENGLISH));
     }
 
-    public static void main(String[] args) {
-        StringBuilder svgContent = new StringBuilder();
+    @Override
+    public String getId() {
+        return "generative-ribbon";
+    }
 
-        // 1. SVG Header
-        svgContent.append(String.format("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\" style=\"background-color:white\">\n", WIDTH, HEIGHT, WIDTH, HEIGHT));
+    @Override
+    public String getDisplayName() {
+        return "Generative Ribbon";
+    }
 
-        // Optional: Add a group with a slight rotation to match the reference image's diagonal feel
-        svgContent.append(String.format("<g transform=\"rotate(-20, %d, %d)\">", CENTER_X, CENTER_Y));
+    @Override
+    public List<ParameterDefinition> getParameterDefinitions() {
+        return List.of(
+                ParameterDefinition.integer("Lines", NUM_LINES, 500, 20000, "Density of the ribbon"),
+                ParameterDefinition.doubleVal("Length (Max T)", MAX_T, 5.0, 100.0, "Length of the ribbon"),
+                ParameterDefinition.doubleVal("Scale", SCALE, 0.5, 5.0, "Zoom level"),
+                ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers"));
+    }
 
-        // 2. The main generation loop
-        for (int i = 0; i < NUM_LINES; i++) {
-            // Normalize i to a range of 0.0 to 1.0
-            double progress = (double) i / NUM_LINES;
-            // Map progress to our time variable t
-            double t = progress * MAX_T;
+    @Override
+    public String generate(Map<String, Object> params) {
+        // Read Params
+        int numLines = (int) params.getOrDefault("Lines", NUM_LINES);
+        double maxT = (double) params.getOrDefault("Length (Max T)", MAX_T);
+        this.currentScale = (double) params.getOrDefault("Scale", SCALE);
+        int numColors = (int) params.getOrDefault("Colors", 1);
 
-            // Calculate the two points in 3D space
+        // Dimensions
+        double width = 1000;
+        double height = 1000;
+        if (params.containsKey("width"))
+            width = ((Number) params.get("width")).doubleValue();
+        if (params.containsKey("height"))
+            height = ((Number) params.get("height")).doubleValue();
+
+        this.centerX = width / 2;
+        this.centerY = height / 2;
+
+        return generateSVG(numLines, maxT, width, height, numColors);
+    }
+
+    private String generateSVG(int numLines, double maxT, double width, double height, int numColors) {
+        org.trostheide.generativeArt.core.SvgCanvas canvas = new org.trostheide.generativeArt.core.SvgCanvas(width,
+                height, numColors);
+
+        for (int i = 0; i < numLines; i++) {
+            double t = (double) i / numLines * maxT;
+
             Point3D p1_3d = calculatePathA(t);
             Point3D p2_3d = calculatePathB(t);
 
-            // Project 3D points to 2D screen coordinates
-            Point2D p1_2d = project(p1_3d);
-            Point2D p2_2d = project(p2_3d);
+            Point2D p1 = project(p1_3d);
+            Point2D p2 = project(p2_3d);
 
-            // Append the SVG line element
-            // Using very thin lines (stroke-width="0.5") creates better Moiré patterns
-            svgContent.append(String.format("  <line x1=\"%s\" y1=\"%s\" x2=\"%s\" y2=\"%s\" stroke=\"black\" stroke-width=\"0.5\" opacity=\"0.8\" />\n",
-                    df.format(p1_2d.x), df.format(p1_2d.y),
-                    df.format(p2_2d.x), df.format(p2_2d.y)));
+            // Distribute across layers
+            int layerIndex = i % numColors;
+            canvas.addLine(layerIndex, p1.x(), p1.y(), p2.x(), p2.y());
         }
 
-        // 3. SVG Footer
-        svgContent.append("</g>\n");
-        svgContent.append("</svg>");
-
-        // 4. Write to file
-        try (FileWriter fileWriter = new FileWriter("ribbon.svg")) {
-            fileWriter.write(svgContent.toString());
-            System.out.println("Successfully generated 'ribbon.svg'");
-        } catch (IOException e) {
-            System.err.println("Error writing SVG file: " + e.getMessage());
-        }
+        return canvas.toSvg();
     }
 
-    /**
-     * Defines the path for one edge of the ribbon.
-     * These are parametric equations combining sines and cosines at different frequencies.
-     */
-    private static Point3D calculatePathA(double t) {
-        // Base movement (larger, slower loops)
+    // --- Math Helpers ---
+
+    private Point3D calculatePathA(double t) {
         double baseX = Math.sin(t * 0.7) * 200;
         double baseY = Math.cos(t * 0.9) * 250;
         double baseZ = Math.sin(t * 0.5) * 200;
 
-        // Offset movement (faster twisting creates the ribbon width)
         double offsetX = Math.cos(t * 3.1 + 0.5) * 60;
         double offsetY = Math.sin(t * 3.3) * 60;
         double offsetZ = Math.cos(t * 3.7 + 1.0) * 60;
 
         return new Point3D(
-                (baseX + offsetX) * SCALE,
-                (baseY + offsetY) * SCALE,
-                (baseZ + offsetZ) * SCALE
-        );
+                (baseX + offsetX) * currentScale,
+                (baseY + offsetY) * currentScale,
+                (baseZ + offsetZ) * currentScale);
     }
 
-    /**
-     * Defines the path for the opposite edge of the ribbon.
-     * It is structurally similar to Path A but with slightly different phases or signs
-     * to ensure it stays separate but related.
-     */
-    private static Point3D calculatePathB(double t) {
-        // Base movement (similar to A)
+    private Point3D calculatePathB(double t) {
         double baseX = Math.sin(t * 0.7) * 200;
         double baseY = Math.cos(t * 0.9) * 250;
         double baseZ = Math.sin(t * 0.5) * 200;
 
-        // Offset movement (note the different phases and signs to create the "opposite" edge)
-        // By subtracting the offsets or changing phases, we create the ribbon width.
-        double offsetX = Math.cos(t * 3.1 + Math.PI) * 70; // Shifts phase by 180 degrees
+        double offsetX = Math.cos(t * 3.1 + Math.PI) * 70;
         double offsetY = Math.sin(t * 3.3 + Math.PI) * 70;
         double offsetZ = Math.cos(t * 3.7 + Math.PI + 1.0) * 70;
 
         return new Point3D(
-                (baseX + offsetX) * SCALE,
-                (baseY + offsetY) * SCALE,
-                (baseZ + offsetZ) * SCALE
-        );
+                (baseX + offsetX) * currentScale,
+                (baseY + offsetY) * currentScale,
+                (baseZ + offsetZ) * currentScale);
     }
 
-    /**
-     * Projects a 3D point onto a 2D plane using a simple weak-perspective projection.
-     * Z depth influences X and Y position slightly to give a 3D feel.
-     */
-    private static Point2D project(Point3D p) {
-        // Simple perspective foreshortening factor.
-        // Points further away (negative Z) get smaller/closer to center.
-        double perspective = 1000.0 / (1000.0 - p.z);
-
-        double x2d = p.x * perspective + CENTER_X;
-        double y2d = p.y * perspective + CENTER_Y;
-
+    private Point2D project(Point3D p) {
+        double perspective = 1000.0 / (1000.0 - p.z());
+        double x2d = p.x() * perspective + centerX;
+        double y2d = p.y() * perspective + centerY;
         return new Point2D(x2d, y2d);
     }
 
-    // Helper classes for storing coordinates
-    record Point3D(double x, double y, double z) {}
-    record Point2D(double x, double y) {}
+    // Records
+    record Point3D(double x, double y, double z) {
+    }
+
+    record Point2D(double x, double y) {
+    }
+
+    public static void main(String[] args) {
+        GenerativeRibbon generator = new GenerativeRibbon();
+        String svg = generator.generate(Map.of());
+        try (FileWriter fileWriter = new FileWriter("ribbon.svg")) {
+            fileWriter.write(svg);
+            System.out.println("Generated ribbon.svg");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
