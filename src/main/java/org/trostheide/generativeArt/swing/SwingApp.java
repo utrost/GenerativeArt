@@ -17,6 +17,7 @@ import org.trostheide.generativeArt.PipeNetworkGenerator;
 import org.trostheide.generativeArt.ParametricGridGenerator;
 import org.trostheide.generativeArt.MagneticFieldGenerator;
 import org.trostheide.generativeArt.FourierSeriesGenerator;
+import org.trostheide.generativeArt.MazeGenerator;
 
 import javax.swing.*;
 
@@ -38,6 +39,7 @@ public class SwingApp {
         GeneratorRegistry.register(new ParametricGridGenerator());
         GeneratorRegistry.register(new MagneticFieldGenerator());
         GeneratorRegistry.register(new FourierSeriesGenerator());
+        GeneratorRegistry.register(new MazeGenerator());
 
         // Setup UI
         FlatDarkLaf.setup();
