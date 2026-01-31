@@ -1,59 +1,118 @@
 # Generative Art Framework
 
-A powerful, extensible Java framework for creating generative art, optimized for pen plotters (e.g., Axidraw). This project features a modern **Swing GUI** for real-time parameter tuning, previewing, and SVG generation.
+**Repository:** [https://github.com/utrost/GenerativeArt](https://github.com/utrost/GenerativeArt)
 
-## 🚀 Quick Start
+A powerful, extensible framework for creating generative art, optimized for pen plotters (e.g., Axidraw). This project features two distinct interfaces:
+1.  **Java Desktop App**: A robust Swing GUI for native performance and direct SVG generation.
+2.  **Web Application**: A modern, interactive web interface built with Vite and vanilla JavaScript.
 
-### Prerequisites
-*   **Java 17** or higher
-*   **Maven** 3.6+
-
-### Running the App
-1.  **Launch via Script:**
-    ```bash
-    ./run.sh
-    ```
-    This script compiles the project using Maven and launches the Swing GUI.
-
-2.  **Generate Art:**
-    *   Select an algorithm from the sidebar (e.g., "Phyllotaxis").
-    *   Adjust parameters (Density, Colors, Scale, etc.).
-    *   Click **"Generate Art"** to see the preview.
-    *   **Saving**: The SVG output is automatically saved to the `output/` directory and can be copied to the clipboard.
-    *   **Help**: Click the "Help" button for detailed documentation on the selected generator's parameters.
+---
 
 ## 🎨 Available Generators
 
-The framework currently includes 8 distinct generative algorithms:
+The framework currently includes **17 distinct generative algorithms**, all ported to both Java and Web versions:
 
 1.  **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
 2.  **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
 3.  **L-System Fractal**: Rule-based recursive fractals (e.g., Dragon Curve, Ferns).
-4.  **Reaction Diffusion**: Simulates biological pattern formation (spots/stripes) using Gray-Scott equations.
+4.  **Reaction Diffusion**: Simulates biological pattern formation (Gray-Scott model).
 5.  **Harmonograph**: Simulates multi-pendulum mechanical drawings (Lissajous figures).
 6.  **Phyllotaxis**: Nature-inspired sunflower spirals using the Golden Angle.
 7.  **Strange Attractors**: Visualizes chaotic mathematical systems (Clifford Attractor).
 8.  **Circle Packing**: Fills space with non-overlapping, growing bubbles.
 9.  **Truchet Tiles**: Maze-like geometric tessellations.
+10. **Twisted Moiré**: Interference patterns from overlapping distorted grids.
+11. **Voronoi Ripples**: Concentric clipping patterns within Voronoi cells.
+12. **Pipe Network**: Industrial pipe systems generated via Wave Function Collapse (WFC).
+13. **Parametric Grid**: Ordered grids that decay into chaos.
+14. **Magnetic Field**: Particle trajectories influenced by magnetic poles.
+15. **Fourier Series**: Visualization of wave summation principles.
+16. **Maze Generator**: Perfect solvable mazes using recursive backtracking.
+17. **Spirograph**: Epicycloid and Hypocycloid curves.
 
-## ✨ Key Features
+---
 
+## ☕ Java Application (Desktop)
+
+The original Java application provides a robust environment for generating high-resolution SVGs.
+
+### Prerequisites (Java)
+*   **Java Development Kit (JDK) 17** or higher.
+    *   *Verify:* `java -version`
+*   **Maven 3.6+** (for building dependencies).
+    *   *Verify:* `mvn -version`
+
+### Installation & Running (Java)
+
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/utrost/GenerativeArt.git
+    cd GenerativeArt
+    ```
+
+2.  **Build and Run**
+    We provide a convenience script to handle compilation and launch.
+    ```bash
+    ./run.sh
+    ```
+    *Alternatively, you can run manually with Maven:*
+    ```bash
+    mvn clean compile exec:java
+    ```
+
+### Java Features
 *   **Swing GUI**: Clean, dark-mode interface using **FlatLaf**.
-*   **Multi-Color Support**: Define 1-6 "Colors" to split the output into separate SVG layers (`<g id="layer_1">`), ready for multi-pen plotting.
-*   **SVG Clipping**: All outputs are cleanly clipped to standard paper sizes (A4, Letter, etc.).
+*   **Multi-Threading**: Background generation prevents UI freezing.
 *   **Extensible**: Easily add new generators by implementing the `ArtGenerator` interface.
 
-## 🛠 Extending the Framework
+---
 
-To add a new art algorithm:
+## 🌐 Web Application
 
-1.  **Create a Class** that implements `org.trostheide.generativeArt.core.ArtGenerator`.
-2.  **Implement Methods**:
-    *   `getParameterDefinitions()`: Define UI controls (Sliders, Checkboxes).
-    *   `generate(Map params)`: Use `SvgCanvas` to draw and return an SVG string.
-3.  **Register It**:
-    Add your new class to `src/main/java/org/trostheide/generativeArt/swing/SwingApp.java`:
-    ```java
-    GeneratorRegistry.register(new MyNewAlgorithm());
+The web version creates a modern, responsive experience accessible directly in the browser.
+
+### Prerequisites (Web)
+*   **Node.js** (v18 or higher recommended).
+    *   *Verify:* `node -v`
+*   **npm** (comes with Node.js).
+
+### Installation & Running (Web)
+
+1.  **Navigate to the Web Directory**
+    ```bash
+    cd web
     ```
-4.  **Recompile**: Run `./run.sh` again.
+
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Start Development Server**
+    ```bash
+    npm run dev
+    ```
+    *   This will start a local server (usually at `http://localhost:5173`).
+    *   Open your browser and navigate to the displayed URL.
+
+4.  **Build for Production** (Optional)
+    To create a static build for deployment:
+    ```bash
+    npm run build
+    ```
+    The output will be in the `dist/` folder.
+
+### Web Features
+*   **Interactive UI**: Glassmorphism design with real-time feedback.
+*   **Instant Preview**: Fast rendering using standard SVG DOM.
+*   **Help System**: Integrated markdown manuals for each generator.
+*   **Download**: One-click SVG download for plotting.
+
+---
+
+## 🛠 Plotter Optimization
+
+Both versions of the application are designed with pen plotters in mind:
+*   **Layering**: Most generators support a `Colors` parameter. This splits the output into separate SVG layers (`layer_1`, `layer_2`, etc.), allowing you to pause the plotter and swap pens for multi-color prints.
+*   **Clean Paths**: Algorithms are tuned to minimize unnecessary pen-up/pen-down movements.
+*   **Paper Sizes**: Native support for A4, A3, and Letter sizes ensures your design fits your physical media.
