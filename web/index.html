@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generative Art</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/ui/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <nav class="sidebar">
+        <div class="logo">
+          <h1>GenArt</h1>
+        </div>
+        <div id="generator-list" class="generator-list">
+          <!-- Populated by JS -->
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <div class="canvas-container">
+            <div id="loading-indicator" class="hidden">Generating...</div>
+            <div id="art-output">
+                <!-- SVG injected here -->
+            </div>
+        </div>
+      </main>
+
+      <aside class="controls-panel">
+        <div class="controls-header">
+            <h2 id="active-generator-name">Select Generator</h2>
+        </div>
+        <div id="controls-container" class="controls-container">
+            <!-- Dynamic Controls -->
+        </div>
+        <div class="actions">
+            <button id="btn-generate" class="primary-btn">Generate</button>
+            <button id="btn-download" class="secondary-btn">Download SVG</button>
+        </div>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
