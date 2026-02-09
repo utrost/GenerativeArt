@@ -34,6 +34,8 @@ public class SpirographGenerator implements ArtGenerator {
                 // Gear Chain specific parameters
                 ParameterDefinition.integer("Chain Length", 3, 2, 20, "Number of Gears (Chain Mode)"),
                 ParameterDefinition.doubleVal("Size Decay", 0.7, 0.1, 1.2, "Size Multiplier per Gear"),
+                ParameterDefinition.selection("Gear Configuration", "Exponential Decay",
+                        List.of("Exponential Decay", "Big-Big-Small", "Big-Small-Big"), "Arrangement of Gears"),
                 ParameterDefinition.selection("Connection", "Alternating",
                         List.of("Alternating", "All Outside", "All Inside", "Random"), "Gear Connection Type"),
                 ParameterDefinition.integer("Seed", 1, 0, 1000, "Random Seed for Ratios"));
@@ -117,10 +119,37 @@ public class SpirographGenerator implements ArtGenerator {
         double[] speeds = new double[chainLength];
         double[] phases = new double[chainLength]; // Initial angles
 
+        String gearConfig = (String) params.getOrDefault("Gear Configuration", "Exponential Decay");
+
+        // Force minimum chain length for specific configs if needed, but let's just use
+        // what we have or cycle
+        // meaningful patterns.
+
         double currentR = baseRadius;
         for (int i = 0; i < chainLength; i++) {
-            radii[i] = currentR;
-            currentR *= decay;
+            if (gearConfig.equals("Big-Big-Small")) {
+                // Pattern: Big, Big, Small... repeating
+                int pos = i % 3;
+                if (pos == 0)
+                    radii[i] = baseRadius;
+                else if (pos == 1)
+                    radii[i] = baseRadius * 0.9; // Slightly smaller big gear
+                else
+                    radii[i] = baseRadius * 0.1; // Small gear
+            } else if (gearConfig.equals("Big-Small-Big")) {
+                // Pattern: Big, Small, Big...
+                int pos = i % 3;
+                if (pos == 0)
+                    radii[i] = baseRadius;
+                else if (pos == 1)
+                    radii[i] = baseRadius * 0.2;
+                else
+                    radii[i] = baseRadius * 0.8;
+            } else {
+                // Default: Exponential Decay
+                radii[i] = currentR;
+                currentR *= decay;
+            }
 
             // Speed logic: Ratios of small integers
             if (i == 0) {
