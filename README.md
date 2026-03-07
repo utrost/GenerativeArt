@@ -116,3 +116,11 @@ Both versions of the application are designed with pen plotters in mind:
 *   **Layering**: Most generators support a `Colors` parameter. This splits the output into separate SVG layers (`layer_1`, `layer_2`, etc.), allowing you to pause the plotter and swap pens for multi-color prints.
 *   **Clean Paths**: Algorithms are tuned to minimize unnecessary pen-up/pen-down movements.
 *   **Paper Sizes**: Native support for A4, A3, and Letter sizes ensures your design fits your physical media.
+
+---
+
+## License
+
+Copyright © 2025–2026 Uwe Trostheide
+
+Licensed under the [GNU Affero General Public License v3.0](LICENSE).

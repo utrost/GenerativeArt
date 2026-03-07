@@ -1,38 +1,31 @@
+### Build output ###
 target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+bin/
+out/
+*.class
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+### IDE ###
+.idea/
 *.iws
 *.iml
 *.ipr
+.vscode/
 
 ### Eclipse ###
-.apt_generated
 .classpath
 .factorypath
 .project
 .settings
-.springBeans
-.sts4-cache
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+### Web ###
+web/node_modules/
+web/dist/
 
-### VS Code ###
-.vscode/
+### Output ###
+*.svg
+!web/public/vite.svg
+!web/src/javascript.svg
 
-### Mac OS ###
+### OS ###
 .DS_Store
+Thumbs.db
