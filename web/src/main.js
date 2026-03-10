@@ -193,8 +193,12 @@ function selectGenerator(gen) {
   generateArt();
 }
 
+let inputElements = {};
+let isUpdatingUI = false;
+
 function renderControls() {
   controlsContainer.innerHTML = '';
+  inputElements = {};
 
   // 1. Render Global Settings first
   renderGlobalSettingsInternal();
@@ -213,13 +217,20 @@ function renderControls() {
       label.style.cursor = "help";
     }
 
-    // Value Display (for text/bool, or just removing it in favor of inputs?)
-    // Let's keep it for everything but update it differently
     const valueDisplay = document.createElement('span');
     valueDisplay.textContent = "";
     label.appendChild(valueDisplay);
-
     group.appendChild(label);
+
+    const handleParamChange = (val) => {
+        if (isUpdatingUI) return;
+        currentParams[def.name] = val;
+        
+        const needsRefresh = activeGenerator.onParameterChanged(def.name, val, currentParams);
+        if (needsRefresh) {
+            updateControlsFromParams();
+        }
+    };
 
     if (def.type === 'integer' || def.type === 'double') {
       const inputContainer = document.createElement('div');
@@ -232,15 +243,15 @@ function renderControls() {
       slider.min = def.min;
       slider.max = def.max;
       slider.step = def.type === 'double' ? 0.1 : 1;
-      slider.value = def.defaultValue;
+      slider.value = currentParams[def.name];
       slider.style.flex = '1';
 
       const numInput = document.createElement('input');
       numInput.type = 'number';
       numInput.min = def.min;
       numInput.max = def.max;
-      numInput.step = def.type === 'double' ? 0.01 : 1; // finer control on number input
-      numInput.value = def.defaultValue;
+      numInput.step = def.type === 'double' ? 0.01 : 1;
+      numInput.value = currentParams[def.name];
       numInput.style.width = '70px';
       numInput.style.backgroundColor = 'rgba(0,0,0,0.2)';
       numInput.style.border = '1px solid var(--border-color)';
@@ -248,27 +259,26 @@ function renderControls() {
       numInput.style.padding = '4px';
       numInput.style.borderRadius = '4px';
 
-      // Sync Slider -> Number
       slider.addEventListener('input', (e) => {
         let val = parseFloat(e.target.value);
         if (def.type === 'integer') val = parseInt(val);
-        currentParams[def.name] = val;
-        numInput.value = val;
+        if (!isUpdatingUI) numInput.value = val;
+        handleParamChange(val);
       });
 
-      // Sync Number -> Slider
       numInput.addEventListener('change', (e) => {
         let val = parseFloat(e.target.value);
         if (def.type === 'integer') val = parseInt(val);
-        // Clamp
         if (val < def.min) val = def.min;
         if (val > def.max) val = def.max;
-
-        currentParams[def.name] = val;
-        slider.value = val;
-        numInput.value = val;
+        if (!isUpdatingUI) {
+            slider.value = val;
+            numInput.value = val;
+        }
+        handleParamChange(val);
       });
 
+      inputElements[def.name] = { slider, numInput, type: def.type };
       inputContainer.appendChild(slider);
       inputContainer.appendChild(numInput);
       group.appendChild(inputContainer);
@@ -276,7 +286,7 @@ function renderControls() {
     } else if (def.type === 'string') {
       const input = document.createElement('input');
       input.type = 'text';
-      input.value = def.defaultValue;
+      input.value = currentParams[def.name];
       input.style.width = '100%';
       input.style.backgroundColor = 'rgba(0,0,0,0.2)';
       input.style.border = '1px solid var(--border-color)';
@@ -284,22 +294,26 @@ function renderControls() {
       input.style.padding = '0.5rem';
       input.style.borderRadius = '0.25rem';
 
-      input.addEventListener('change', (e) => {
-        currentParams[def.name] = e.target.value;
+      input.addEventListener('input', (e) => {
+        handleParamChange(e.target.value);
       });
+      
+      inputElements[def.name] = { input, type: def.type };
       group.appendChild(input);
 
     } else if (def.type === 'boolean') {
       const input = document.createElement('input');
       input.type = 'checkbox';
-      input.checked = def.defaultValue;
+      input.checked = currentParams[def.name];
       input.style.width = '20px';
       input.style.height = '20px';
       input.style.cursor = 'pointer';
 
       input.addEventListener('change', (e) => {
-        currentParams[def.name] = e.target.checked;
+        handleParamChange(e.target.checked);
       });
+      
+      inputElements[def.name] = { input, type: def.type };
       group.appendChild(input);
 
     } else if (def.type === 'selection') {
@@ -319,17 +333,40 @@ function renderControls() {
         option.textContent = opt;
         select.appendChild(option);
       });
-      select.value = def.defaultValue;
+      select.value = currentParams[def.name];
 
       select.addEventListener('change', (e) => {
-        currentParams[def.name] = e.target.value;
+        handleParamChange(e.target.value);
       });
 
+      inputElements[def.name] = { input: select, type: def.type };
       group.appendChild(select);
     }
 
     controlsContainer.appendChild(group);
   });
+}
+
+function updateControlsFromParams() {
+    isUpdatingUI = true;
+    try {
+        for (const [paramName, elements] of Object.entries(inputElements)) {
+            const val = currentParams[paramName];
+            if (val === undefined) continue;
+
+            if (elements.type === 'integer' || elements.type === 'double') {
+                if (elements.slider.value != val) elements.slider.value = val;
+                if (elements.numInput.value != val) elements.numInput.value = val;
+            } else if (elements.type === 'string' || elements.type === 'selection') {
+                if (elements.input.value !== val) elements.input.value = val;
+            } else if (elements.type === 'boolean') {
+                if (elements.input.checked !== val) elements.input.checked = val;
+            }
+        }
+    } finally {
+        isUpdatingUI = false;
+        generateArt(); // Re-render the canvas with the new preset parameters
+    }
 }
 
 function renderGlobalSettingsInternal() {

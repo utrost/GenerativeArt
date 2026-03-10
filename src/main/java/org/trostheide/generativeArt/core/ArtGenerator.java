@@ -29,4 +29,18 @@ public interface ArtGenerator {
      *         Let's return the FULL SVG content including XML header and svg tag.
      */
     String generate(Map<String, Object> params);
+    /**
+     * Called when a parameter value is changed in the UI.
+     * Generators can override this to update other parameters dynamically 
+     * (e.g., selecting a preset updates multiple specific settings).
+     * 
+     * @param paramName The name of the parameter that changed
+     * @param newValue The new value of the parameter
+     * @param currentValues The map of all current parameter values. 
+     *                      The generator may modify this map directly to apply changes.
+     * @return true if the UI needs to be refreshed (components updated from currentValues map).
+     */
+    default boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        return false; // Default implementation does nothing
+    }
 }

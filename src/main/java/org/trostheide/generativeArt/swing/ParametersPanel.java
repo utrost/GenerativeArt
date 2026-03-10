@@ -61,6 +61,8 @@ public class ParametersPanel extends JPanel {
         return (PaperSize) paperSizeSelector.getSelectedItem();
     }
 
+    private boolean isUpdatingUI = false;
+
     public void setGenerator(ArtGenerator generator) {
         formContainer.removeAll();
         inputs.clear();
@@ -81,12 +83,72 @@ public class ParametersPanel extends JPanel {
             inputs.put(param.name(), input);
             row.add(input, BorderLayout.CENTER);
 
+            // Add change listeners to trigger onParameterChanged
+            attachChangeListener(input, param.name(), generator);
+
             formContainer.add(row);
         }
 
         formContainer.add(Box.createVerticalGlue());
         formContainer.revalidate();
         formContainer.repaint();
+    }
+
+    private void attachChangeListener(JComponent input, String paramName, ArtGenerator generator) {
+        if (input instanceof JSpinner) {
+            ((JSpinner) input).addChangeListener(e -> handleParameterChange(paramName, ((JSpinner) input).getValue(), generator));
+        } else if (input instanceof JCheckBox) {
+            ((JCheckBox) input).addActionListener(e -> handleParameterChange(paramName, ((JCheckBox) input).isSelected(), generator));
+        } else if (input instanceof JComboBox) {
+            ((JComboBox<?>) input).addActionListener(e -> handleParameterChange(paramName, ((JComboBox<?>) input).getSelectedItem(), generator));
+        } else if (input instanceof JTextField) {
+            ((JTextField) input).getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                public void changedUpdate(javax.swing.event.DocumentEvent e) { update(); }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) { update(); }
+                public void insertUpdate(javax.swing.event.DocumentEvent e) { update(); }
+                private void update() {
+                    handleParameterChange(paramName, ((JTextField) input).getText(), generator);
+                }
+            });
+        }
+    }
+
+    private void handleParameterChange(String paramName, Object newValue, ArtGenerator generator) {
+        if (isUpdatingUI) return;
+        
+        Map<String, Object> currentValues = getValues();
+        boolean needsRefresh = generator.onParameterChanged(paramName, newValue, currentValues);
+        
+        if (needsRefresh) {
+            SwingUtilities.invokeLater(() -> updateUIFromValues(currentValues));
+        }
+    }
+
+    private void updateUIFromValues(Map<String, Object> newValues) {
+        isUpdatingUI = true;
+        try {
+            for (Map.Entry<String, JComponent> entry : inputs.entrySet()) {
+                String key = entry.getKey();
+                if (newValues.containsKey(key)) {
+                    Object val = newValues.get(key);
+                    JComponent input = entry.getValue();
+                    if (input instanceof JSpinner && val instanceof Number) {
+                        ((JSpinner) input).setValue(val);
+                    } else if (input instanceof JCheckBox && val instanceof Boolean) {
+                        ((JCheckBox) input).setSelected((Boolean) val);
+                    } else if (input instanceof JTextField && val instanceof String) {
+                        JTextField tf = (JTextField) input;
+                        if (!tf.getText().equals(val)) {
+                            tf.setText((String) val);
+                        }
+                    } else if (input instanceof JComboBox) {
+                        ((JComboBox<?>) input).setSelectedItem(val);
+                    }
+                }
+            }
+        } finally {
+            isUpdatingUI = false;
+        }
     }
 
     private JComponent createInput(ParameterDefinition param) {
