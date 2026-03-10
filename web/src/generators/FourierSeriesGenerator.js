@@ -28,13 +28,16 @@ export class FourierSeriesGenerator extends Generator {
         const frequency = params["frequency"] || 2.0;
         const verticalSpacing = params["verticalSpacing"] || 20.0;
 
-        const width = 800;
-        const height = Math.max(600, (lineCount + 2) * verticalSpacing);
+        const targetWidth = params["width"] || 1000;
+        const targetHeight = params["height"] || 1000;
 
-        const canvas = new SvgCanvas(width, height, 1);
-        canvas.setStrokeWidth(1.5);
-
+        const genWidth = 800;
         const startY = 50.0;
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+
+        const paths = [];
 
         for (let i = 0; i < lineCount; i++) {
             const terms = i + 1;
@@ -45,11 +48,16 @@ export class FourierSeriesGenerator extends Generator {
             let first = true;
 
             for (let s = 0; s <= steps; s++) {
-                const x = (s / steps) * width;
+                const x = (s / steps) * genWidth;
                 const theta = (s / steps) * 2 * Math.PI * frequency;
 
                 const val = this.calculateFourierSum(waveform, terms, theta);
                 const y = yBase + val * amplitude;
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
 
                 if (first) {
                     path += `M ${x.toFixed(2)} ${y.toFixed(2)}`;
@@ -59,8 +67,27 @@ export class FourierSeriesGenerator extends Generator {
                 }
             }
 
-            canvas.addRaw(0, `<path d='${path}' fill='none' stroke='var(--accent-color)' stroke-width='1.5' />`);
+            paths.push(`<path d='${path}' fill='none' stroke='var(--accent-color)' stroke-width='1.5' vector-effect='non-scaling-stroke' />`);
         }
+
+        const margin = 50.0;
+        let bboxWidth = maxX - minX;
+        let bboxHeight = maxY - minY;
+
+        if (bboxWidth <= 0) bboxWidth = 1;
+        if (bboxHeight <= 0) bboxHeight = 1;
+
+        const scale = Math.min((targetWidth - 2 * margin) / bboxWidth, (targetHeight - 2 * margin) / bboxHeight);
+        const offsetX = (targetWidth - bboxWidth * scale) / 2.0 - minX * scale;
+        const offsetY = (targetHeight - bboxHeight * scale) / 2.0 - minY * scale;
+
+        const canvas = new SvgCanvas(targetWidth, targetHeight, 1);
+        canvas.setStrokeWidth(1.5);
+        canvas.addRaw(0, `<g transform='translate(${offsetX.toFixed(1)}, ${offsetY.toFixed(1)}) scale(${scale.toFixed(4)})'>`);
+        for (const p of paths) {
+            canvas.addRaw(0, p);
+        }
+        canvas.addRaw(0, "</g>");
 
         return canvas.toSvg();
     }

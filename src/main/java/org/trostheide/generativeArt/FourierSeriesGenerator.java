@@ -37,37 +37,35 @@ public class FourierSeriesGenerator implements ArtGenerator {
         double frequency = (double) params.getOrDefault("frequency", 2.0);
         double verticalSpacing = (double) params.getOrDefault("verticalSpacing", 20.0);
 
-        double width = 800;
-        double height = Math.max(600, (lineCount + 2) * verticalSpacing);
+        double targetWidth = params.containsKey("width") ? ((Number) params.get("width")).doubleValue() : 1000;
+        double targetHeight = params.containsKey("height") ? ((Number) params.get("height")).doubleValue() : 1000;
 
-        SvgCanvas canvas = new SvgCanvas(width, height, 1);
-        canvas.setStrokeWidth(1.5);
-
-        // Center vertically somewhat if height allows, or just start from top padding
+        double genWidth = 800;
         double startY = 50.0;
 
+        double minX = Double.MAX_VALUE, maxX = -Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+
+        java.util.List<String> paths = new java.util.ArrayList<>();
+
         for (int i = 0; i < lineCount; i++) {
-            // i represents the index of the line (0 to lineCount-1).
-            // The number of terms we use is i + 1.
             int terms = i + 1;
-
             double yBase = startY + i * verticalSpacing;
-
             StringBuilder path = new StringBuilder();
-
-            // Resolution of the curve
             int steps = 1000;
             boolean first = true;
 
             for (int s = 0; s <= steps; s++) {
-                double x = (double) s / steps * width;
-
-                // Normalized angle: 0 to 2*PI * frequency across the width
+                double x = (double) s / steps * genWidth;
                 double theta = (double) s / steps * 2 * Math.PI * frequency;
 
                 double val = calculateFourierSum(waveform, terms, theta);
-
                 double y = yBase + val * amplitude;
+
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
 
                 if (first) {
                     path.append(String.format(Locale.US, "M %.2f %.2f", x, y));
@@ -77,10 +75,26 @@ public class FourierSeriesGenerator implements ArtGenerator {
                 }
             }
 
-            // Fix: Wrap in proper path tag
-            String pathTag = String.format("<path d='%s' />", path.toString());
-            canvas.addPath(0, pathTag);
+            paths.add(String.format("<path d='%s' vector-effect='non-scaling-stroke' />", path.toString()));
         }
+
+        double margin = 50.0;
+        double bboxWidth = maxX - minX;
+        double bboxHeight = maxY - minY;
+        if (bboxWidth <= 0) bboxWidth = 1;
+        if (bboxHeight <= 0) bboxHeight = 1;
+
+        double scale = Math.min((targetWidth - 2 * margin) / bboxWidth, (targetHeight - 2 * margin) / bboxHeight);
+        double offsetX = (targetWidth - bboxWidth * scale) / 2.0 - minX * scale;
+        double offsetY = (targetHeight - bboxHeight * scale) / 2.0 - minY * scale;
+
+        SvgCanvas canvas = new SvgCanvas(targetWidth, targetHeight, 1);
+        canvas.setStrokeWidth(1.5);
+        canvas.addRaw(0, String.format(Locale.US, "<g transform='translate(%.1f, %.1f) scale(%.4f)'>", offsetX, offsetY, scale));
+        for (String p : paths) {
+            canvas.addRaw(0, p);
+        }
+        canvas.addRaw(0, "</g>");
 
         return canvas.toSvg();
     }
