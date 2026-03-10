@@ -233,9 +233,12 @@ export class PipeNetworkGenerator extends Generator {
     // --- Rendering ---
 
     render(canvas, wave, rows, cols, pipeWidth, width, height) {
-        const cellW = width / cols;
-        const cellH = height / rows;
-        const tileSize = Math.min(cellW, cellH);
+        // Use square cells (like Java's fixed tileSize=60), centered in the canvas
+        const tileSize = Math.min(width / cols, height / rows);
+        const gridW = cols * tileSize;
+        const gridH = rows * tileSize;
+        const offsetX = (width - gridW) / 2;
+        const offsetY = (height - gridH) / 2;
         const flangeDist = tileSize / 2 - 5;
 
         for (let r = 0; r < rows; r++) {
@@ -243,10 +246,10 @@ export class PipeNetworkGenerator extends Generator {
                 const tileSet = wave[r][c];
                 if (tileSet.size === 0) continue;
 
-                const idx = [...tileSet][0]; // First (should be only) tile
+                const idx = [...tileSet][0];
                 const tile = this.TILES[idx];
-                const cx = c * cellW + cellW / 2;
-                const cy = r * cellH + cellH / 2;
+                const cx = offsetX + c * tileSize + tileSize / 2;
+                const cy = offsetY + r * tileSize + tileSize / 2;
                 const radius = tileSize / 2;
 
                 switch (tile.type) {
