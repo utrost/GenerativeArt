@@ -2,6 +2,8 @@
 
 **Repository:** [https://github.com/utrost/GenerativeArt](https://github.com/utrost/GenerativeArt)
 
+**🌐 Live Demo:** [utrost.github.io/GenerativeArt](https://utrost.github.io/GenerativeArt/) · [simiono.com/genart](https://simiono.com/genart/)
+
 A powerful, extensible framework for creating generative art, optimized for pen plotters (e.g., Axidraw). This project features two distinct interfaces:
 1.  **Java Desktop App**: A robust Swing GUI for native performance and direct SVG generation.
 2.  **Web Application**: A modern, interactive web interface built with Vite and vanilla JavaScript.
