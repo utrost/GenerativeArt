@@ -34,6 +34,25 @@ The framework currently includes **17 distinct generative algorithms**, all port
 
 ---
 
+## 📸 Gallery
+
+<table>
+  <tr>
+    <td align="center"><img src="images/maze-generator.webp" alt="Maze Generator" width="380"><br><b>Maze Generator</b><br>Solvable mazes with solution path</td>
+    <td align="center"><img src="images/circle-packing.webp" alt="Circle Packing" width="380"><br><b>Circle Packing</b><br>Space-filling non-overlapping circles</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="images/twisted-moire.webp" alt="Twisted Moiré" width="380"><br><b>Twisted Moiré</b><br>Interference patterns from distorted grids</td>
+    <td align="center"><img src="images/truchet-tiles.webp" alt="Truchet Tiles" width="380"><br><b>Truchet Tiles</b><br>Geometric maze-like tessellations</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="images/pipe-network.webp" alt="Pipe Network" width="380"><br><b>Pipe Network</b><br>Industrial pipes via Wave Function Collapse</td>
+    <td align="center"><em>+ 12 more generators in the <a href="https://utrost.github.io/GenerativeArt/">Live Demo</a></em></td>
+  </tr>
+</table>
+
+---
+
 ## ☕ Java Application (Desktop)
 
 The original Java application provides a robust environment for generating high-resolution SVGs.
