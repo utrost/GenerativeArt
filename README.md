@@ -52,15 +52,19 @@ The original Java application provides a robust environment for generating high-
     cd GenerativeArt
     ```
 
-2.  **Build and Run**
-    We provide a convenience script to handle compilation and launch.
+2.  **Build the Project**
+    We provide convenience scripts to handle compilation and dependencies for both Java and Web.
+    *   **macOS / Linux**: `./build.sh`
+    *   **Windows**: `build.bat`
+
+    *Alternatively, you can build manually with Maven:*
     ```bash
-    ./run.sh
+    mvn clean compile
     ```
-    *Alternatively, you can run manually with Maven:*
-    ```bash
-    mvn clean compile exec:java
-    ```
+
+3.  **Run the Java App**
+    *   **macOS / Linux**: `./start_swing.sh`
+    *   **Windows**: `start_swing.bat`
 
 ### Java Features
 *   **Swing GUI**: Clean, dark-mode interface using **FlatLaf**.
@@ -91,6 +95,11 @@ The web version creates a modern, responsive experience accessible directly in t
     ```
 
 3.  **Start Development Server**
+    We provide a convenience script to start the web interface:
+    *   **macOS / Linux**: `./start_web.sh`
+    *   **Windows**: `start_web.bat`
+
+    *Alternatively, you can run it manually:*
     ```bash
     npm run dev
     ```
@@ -98,7 +107,7 @@ The web version creates a modern, responsive experience accessible directly in t
     *   Open your browser and navigate to the displayed URL.
 
 4.  **Build for Production** (Optional)
-    To create a static build for deployment:
+    To create a static build for deployment (already handled by the root `build.sh`/`build.bat` scripts):
     ```bash
     npm run build
     ```
