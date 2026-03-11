@@ -3,6 +3,7 @@
 **Reaction Diffusion (Gray-Scott)** simulates chemicals diffusing and reacting on a grid to create organic spots, stripes, and maze-like patterns. The output is vectorized using Marching Squares.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |

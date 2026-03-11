@@ -14,12 +14,50 @@ export class ParametricGridGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Subtle Disruption", "High Chaos", "Dense Matrix"], "Select a predefined style"),
             ParameterDefinition.integer("macroSize", 5, 2, 20, "Macro Grid Size (blocks)"),
             ParameterDefinition.integer("microSize", 10, 2, 30, "Micro Grid Size (squares per block)"),
             ParameterDefinition.doubleVal("maxRotation", 45.0, 0.0, 180.0, "Max Chaos Rotation (degrees)"),
             ParameterDefinition.doubleVal("minScale", 0.2, 0.0, 1.0, "Min Scale at bottom"),
             ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Subtle Disruption":
+                    currentValues["macroSize"] = 4;
+                    currentValues["microSize"] = 8;
+                    currentValues["maxRotation"] = 15.0;
+                    currentValues["minScale"] = 0.5;
+                    currentValues["seed"] = 10;
+                    return true;
+                case "High Chaos":
+                    currentValues["macroSize"] = 6;
+                    currentValues["microSize"] = 12;
+                    currentValues["maxRotation"] = 90.0;
+                    currentValues["minScale"] = 0.1;
+                    currentValues["seed"] = 20;
+                    return true;
+                case "Dense Matrix":
+                    currentValues["macroSize"] = 10;
+                    currentValues["microSize"] = 20;
+                    currentValues["maxRotation"] = 30.0;
+                    currentValues["minScale"] = 0.3;
+                    currentValues["seed"] = 30;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

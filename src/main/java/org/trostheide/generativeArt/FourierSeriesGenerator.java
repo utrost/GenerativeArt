@@ -18,15 +18,55 @@ public class FourierSeriesGenerator implements ArtGenerator {
         return "Fourier Series";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Square Wave Form", "Triangle Mesh", "Sawtooth Density"), 
+                    "Select a predefined style"),
                 ParameterDefinition.selection("waveform", "Square", List.of("Square", "Triangle", "Sawtooth"),
                         "Waveform type"),
                 ParameterDefinition.integer("lineCount", 20, 1, 100, "Number of lines (approximation steps)"),
                 ParameterDefinition.doubleVal("amplitude", 50.0, 1.0, 200.0, "Wave amplitude"),
                 ParameterDefinition.doubleVal("frequency", 2.0, 0.1, 20.0, "Cycles per width"),
                 ParameterDefinition.doubleVal("verticalSpacing", 20.0, 5.0, 100.0, "Vertical spacing between lines"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Square Wave Form":
+                    currentValues.put("waveform", "Square");
+                    currentValues.put("lineCount", 20);
+                    currentValues.put("amplitude", 50.0);
+                    currentValues.put("frequency", 2.0);
+                    currentValues.put("verticalSpacing", 20.0);
+                    return true;
+                case "Triangle Mesh":
+                    currentValues.put("waveform", "Triangle");
+                    currentValues.put("lineCount", 40);
+                    currentValues.put("amplitude", 80.0);
+                    currentValues.put("frequency", 1.5);
+                    currentValues.put("verticalSpacing", 10.0);
+                    return true;
+                case "Sawtooth Density":
+                    currentValues.put("waveform", "Sawtooth");
+                    currentValues.put("lineCount", 60);
+                    currentValues.put("amplitude", 30.0);
+                    currentValues.put("frequency", 3.0);
+                    currentValues.put("verticalSpacing", 15.0);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     @Override

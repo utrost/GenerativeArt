@@ -20,11 +20,46 @@ export class PipeNetworkGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Dense Industrial", "Large Conduits", "Complex Maze"], "Select a predefined style"),
             ParameterDefinition.integer("Rows", 10, 5, 50, "Grid Rows"),
             ParameterDefinition.integer("Cols", 10, 5, 50, "Grid Columns"),
             ParameterDefinition.doubleVal("Pipe Width", 15.0, 1.0, 30.0, "Width of pipes"),
             ParameterDefinition.integer("Seed", 1234, 0, 100000, "Random Seed")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Dense Industrial":
+                    currentValues["Rows"] = 20;
+                    currentValues["Cols"] = 20;
+                    currentValues["Pipe Width"] = 10.0;
+                    currentValues["Seed"] = 101;
+                    return true;
+                case "Large Conduits":
+                    currentValues["Rows"] = 5;
+                    currentValues["Cols"] = 5;
+                    currentValues["Pipe Width"] = 30.0;
+                    currentValues["Seed"] = 404;
+                    return true;
+                case "Complex Maze":
+                    currentValues["Rows"] = 30;
+                    currentValues["Cols"] = 30;
+                    currentValues["Pipe Width"] = 5.0;
+                    currentValues["Seed"] = 999;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     // Tile definitions aligned with Java version:

@@ -3,6 +3,7 @@
 **Flow Field (Perlin)** generates organic, flowing lines that simulate fluid movement or wind. It uses Perlin noise to determine the angle of movement at every point on the canvas.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |

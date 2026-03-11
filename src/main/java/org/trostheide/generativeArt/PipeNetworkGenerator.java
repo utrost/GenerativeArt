@@ -18,13 +18,50 @@ public class PipeNetworkGenerator implements ArtGenerator {
         return "Pipe Network (WFC)";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Dense Industrial", "Large Conduits", "Complex Maze"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("rows", 10, 3, 50, "Grid Rows"),
                 ParameterDefinition.integer("cols", 10, 3, 50, "Grid Columns"),
                 ParameterDefinition.doubleVal("pipeWidth", 15.0, 1.0, 50.0, "Pipe Width"),
                 ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Dense Industrial":
+                    currentValues.put("rows", 20);
+                    currentValues.put("cols", 20);
+                    currentValues.put("pipeWidth", 10.0);
+                    currentValues.put("seed", 101);
+                    return true;
+                case "Large Conduits":
+                    currentValues.put("rows", 5);
+                    currentValues.put("cols", 5);
+                    currentValues.put("pipeWidth", 30.0);
+                    currentValues.put("seed", 404);
+                    return true;
+                case "Complex Maze":
+                    currentValues.put("rows", 30);
+                    currentValues.put("cols", 30);
+                    currentValues.put("pipeWidth", 5.0);
+                    currentValues.put("seed", 999);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     // --- Inner Classes for WFC ---

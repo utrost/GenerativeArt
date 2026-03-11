@@ -26,7 +26,7 @@ public class ParametersPanel extends JPanel {
         JPanel sizePanel = new JPanel(new BorderLayout(5, 0));
         sizePanel.add(new JLabel("Page Size:"), BorderLayout.WEST);
         paperSizeSelector = new JComboBox<>(PaperSize.values());
-        paperSizeSelector.setSelectedItem(PaperSize.A4_PORTRAIT);
+        paperSizeSelector.setSelectedItem(PaperSize.A4_LANDSCAPE);
         sizePanel.add(paperSizeSelector, BorderLayout.CENTER);
 
         topPanel.add(sizePanel, BorderLayout.NORTH);

@@ -5,6 +5,7 @@ This generator visualizes the mathematical concept of Fourier Series approximati
 The visual output is a "stacked plot" or "waterfall plot", where each line represents an approximation with an increasing number of terms. The top lines are simple smooth curves (few terms), while the bottom lines become sharper and more defined (many terms), eventually taking the shape of the selected waveform.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 *   **Waveform**: Select from the dropdown list.
     *   `Square`: Converges to a square wave (switching between high and low). Uses odd harmonics: $\sum_{k=1,3,5...} \frac{\sin(kx)}{k}$

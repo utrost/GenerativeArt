@@ -14,12 +14,47 @@ export class CirclePackingGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Dense Bubbles", "Large Boulders", "Sparse Grid"], "Select a predefined style"),
             ParameterDefinition.integer("Attempts", 2000, 100, 10000, "Number of circles to attempt"),
             ParameterDefinition.doubleVal("Min Radius", 2.0, 1.0, 50.0, "Minimum circle size"),
             ParameterDefinition.doubleVal("Max Radius", 50.0, 10.0, 200.0, "Maximum circle size"),
             ParameterDefinition.doubleVal("Padding", 2.0, 0.0, 20.0, "Space between circles"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Dense Bubbles":
+                    currentValues["Attempts"] = 8000;
+                    currentValues["Min Radius"] = 1.0;
+                    currentValues["Max Radius"] = 20.0;
+                    currentValues["Padding"] = 0.5;
+                    return true;
+                case "Large Boulders":
+                    currentValues["Attempts"] = 1000;
+                    currentValues["Min Radius"] = 10.0;
+                    currentValues["Max Radius"] = 150.0;
+                    currentValues["Padding"] = 5.0;
+                    return true;
+                case "Sparse Grid":
+                    currentValues["Attempts"] = 500;
+                    currentValues["Min Radius"] = 5.0;
+                    currentValues["Max Radius"] = 80.0;
+                    currentValues["Padding"] = 20.0;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

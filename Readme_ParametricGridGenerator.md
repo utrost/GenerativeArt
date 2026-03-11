@@ -8,6 +8,7 @@ The **Parametric Grid** generator creates a "Grid of Grids" where simple visual 
 - **Y-Axis = Size**: As you move from Top to Bottom, the squares shrink in size.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

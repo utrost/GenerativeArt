@@ -3,6 +3,7 @@
 **L-System (Lindenmayer System)** is a way of generating self-similar fractals using a simple set of text-replacement rules. It interprets a string of characters as instructions for a "turtle" that draws lines on the screen.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |

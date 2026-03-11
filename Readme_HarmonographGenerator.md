@@ -4,6 +4,7 @@
 A Harmonograph simulates a mechanical apparatus that uses pendulums to create complex geometric figures. The motion of the pendulums decays over time, creating spiraling, intricate patterns often referred to as Lissajous figures (though strictly Lissajous figures do not decay).
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 ### Steps
 *   **Description**: The total number of points/segments to draw.

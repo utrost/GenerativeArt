@@ -27,15 +27,66 @@ public class ReactionDiffusionGenerator implements ArtGenerator {
         return "Reaction Diffusion (Gray-Scott)";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Coral Growth", "Mitosis", "Mazes", "Moving Spots"), 
+                    "Select a predefined style"),
                 ParameterDefinition.doubleVal("Feed Rate", 0.055, 0.01, 0.1, "Feed rate (f)"),
                 ParameterDefinition.doubleVal("Kill Rate", 0.062, 0.01, 0.1, "Kill rate (k)"),
                 ParameterDefinition.integer("Iterations", 8000, 1000, 20000, "Simulation steps"),
                 ParameterDefinition.doubleVal("Threshold", 0.25, 0.1, 0.9, "Start iso-contour threshold"),
                 ParameterDefinition.integer("Scale", 2, 1, 5, "Output scale"),
                 ParameterDefinition.integer("Colors", 1, 1, 6, "Number of layers (contours)"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Coral Growth":
+                    currentValues.put("Feed Rate", 0.0545);
+                    currentValues.put("Kill Rate", 0.062);
+                    currentValues.put("Iterations", 10000);
+                    currentValues.put("Threshold", 0.3);
+                    currentValues.put("Scale", 2);
+                    currentValues.put("Colors", 2);
+                    return true;
+                case "Mitosis":
+                    currentValues.put("Feed Rate", 0.0367);
+                    currentValues.put("Kill Rate", 0.0649);
+                    currentValues.put("Iterations", 8000);
+                    currentValues.put("Threshold", 0.25);
+                    currentValues.put("Scale", 2);
+                    currentValues.put("Colors", 1);
+                    return true;
+                case "Mazes":
+                    currentValues.put("Feed Rate", 0.029);
+                    currentValues.put("Kill Rate", 0.057);
+                    currentValues.put("Iterations", 10000);
+                    currentValues.put("Threshold", 0.2);
+                    currentValues.put("Scale", 2);
+                    currentValues.put("Colors", 1);
+                    return true;
+                case "Moving Spots":
+                    currentValues.put("Feed Rate", 0.014);
+                    currentValues.put("Kill Rate", 0.054);
+                    currentValues.put("Iterations", 12000);
+                    currentValues.put("Threshold", 0.4);
+                    currentValues.put("Scale", 3);
+                    currentValues.put("Colors", 3);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     @Override

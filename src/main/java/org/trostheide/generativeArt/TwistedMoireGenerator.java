@@ -19,15 +19,62 @@ public class TwistedMoireGenerator implements ArtGenerator {
         return "Twisted Moiré";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Subtle Shift", "Vortex", "Offset Swirl", "Dense Interference"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("lineCount", 80, 10, 500, "Number of vertical lines"),
                 ParameterDefinition.doubleVal("twistStrength", 5.0, -20.0, 20.0, "Strength of the spiral twist"),
                 ParameterDefinition.doubleVal("centerX", 0.5, 0.0, 1.0, "Center X of the twist (0-1)"),
                 ParameterDefinition.doubleVal("centerY", 0.5, 0.0, 1.0, "Center Y of the twist (0-1)"),
                 ParameterDefinition.doubleVal("layer2Rotation", 2.0, -180.0, 180.0,
                         "Rotation offset for the second layer (degrees)"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Subtle Shift":
+                    currentValues.put("lineCount", 100);
+                    currentValues.put("twistStrength", 2.0);
+                    currentValues.put("centerX", 0.5);
+                    currentValues.put("centerY", 0.5);
+                    currentValues.put("layer2Rotation", 1.5);
+                    return true;
+                case "Vortex":
+                    currentValues.put("lineCount", 150);
+                    currentValues.put("twistStrength", 15.0);
+                    currentValues.put("centerX", 0.5);
+                    currentValues.put("centerY", 0.5);
+                    currentValues.put("layer2Rotation", 5.0);
+                    return true;
+                case "Offset Swirl":
+                    currentValues.put("lineCount", 80);
+                    currentValues.put("twistStrength", 8.0);
+                    currentValues.put("centerX", 0.3);
+                    currentValues.put("centerY", 0.7);
+                    currentValues.put("layer2Rotation", -3.0);
+                    return true;
+                case "Dense Interference":
+                    currentValues.put("lineCount", 200);
+                    currentValues.put("twistStrength", 4.0);
+                    currentValues.put("centerX", 0.5);
+                    currentValues.put("centerY", 0.5);
+                    currentValues.put("layer2Rotation", 0.5);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     @Override

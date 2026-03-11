@@ -8,6 +8,7 @@ The **Magnetic Field** generator creates smooth, flowing lines that simulate the
 - **Trajectory**: These particles follow the magnetic field lines (streamlines), creating a visualization of the force field.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

@@ -14,11 +14,46 @@ export class TruchetTilesGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Classic Curves", "Dense Maze", "Large Blocks"], "Select a predefined style"),
             ParameterDefinition.integer("Rows", 20, 5, 100, "Number of rows"),
             ParameterDefinition.integer("Columns", 20, 5, 100, "Number of columns"),
             ParameterDefinition.bool("Curved", true, "Use arcs (true) or lines (false)"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Classic Curves":
+                    currentValues["Rows"] = 20;
+                    currentValues["Columns"] = 20;
+                    currentValues["Curved"] = true;
+                    currentValues["Colors"] = 1;
+                    return true;
+                case "Dense Maze":
+                    currentValues["Rows"] = 50;
+                    currentValues["Columns"] = 50;
+                    currentValues["Curved"] = false;
+                    currentValues["Colors"] = 2;
+                    return true;
+                case "Large Blocks":
+                    currentValues["Rows"] = 10;
+                    currentValues["Columns"] = 10;
+                    currentValues["Curved"] = true;
+                    currentValues["Colors"] = 4;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

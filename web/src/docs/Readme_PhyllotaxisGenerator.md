@@ -4,6 +4,7 @@
 Based on the arrangement of seeds in a sunflower head, this generator uses the "Golden Angle" (approximately 137.5 degrees) to create mathematically perfect packing spirals.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 ### Dot Count
 *   **Description**: The total number of seeds (circles) to generate.

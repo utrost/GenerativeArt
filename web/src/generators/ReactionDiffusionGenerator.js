@@ -25,6 +25,7 @@ export class ReactionDiffusionGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Coral Growth", "Mitosis", "Mazes", "Moving Spots"], "Select a predefined style"),
             ParameterDefinition.doubleVal("Feed Rate", 0.055, 0.01, 0.1, "Feed rate (f)"),
             ParameterDefinition.doubleVal("Kill Rate", 0.062, 0.01, 0.1, "Kill rate (k)"),
             ParameterDefinition.integer("Iterations", 8000, 1000, 20000, "Simulation steps"),
@@ -32,6 +33,54 @@ export class ReactionDiffusionGenerator extends Generator {
             ParameterDefinition.integer("Scale", 2, 1, 5, "Output scale"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of layers (contours)")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Coral Growth":
+                    currentValues["Feed Rate"] = 0.0545;
+                    currentValues["Kill Rate"] = 0.062;
+                    currentValues["Iterations"] = 10000;
+                    currentValues["Threshold"] = 0.3;
+                    currentValues["Scale"] = 2;
+                    currentValues["Colors"] = 2;
+                    return true;
+                case "Mitosis":
+                    currentValues["Feed Rate"] = 0.0367;
+                    currentValues["Kill Rate"] = 0.0649;
+                    currentValues["Iterations"] = 8000;
+                    currentValues["Threshold"] = 0.25;
+                    currentValues["Scale"] = 2;
+                    currentValues["Colors"] = 1;
+                    return true;
+                case "Mazes":
+                    currentValues["Feed Rate"] = 0.029;
+                    currentValues["Kill Rate"] = 0.057;
+                    currentValues["Iterations"] = 10000;
+                    currentValues["Threshold"] = 0.2;
+                    currentValues["Scale"] = 2;
+                    currentValues["Colors"] = 1;
+                    return true;
+                case "Moving Spots":
+                    currentValues["Feed Rate"] = 0.014;
+                    currentValues["Kill Rate"] = 0.054;
+                    currentValues["Iterations"] = 12000;
+                    currentValues["Threshold"] = 0.4;
+                    currentValues["Scale"] = 3;
+                    currentValues["Colors"] = 3;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

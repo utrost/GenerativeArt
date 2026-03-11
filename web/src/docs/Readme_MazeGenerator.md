@@ -3,6 +3,7 @@
 **Maze Generator** creates perfect, solvable mazes using a Recursive Backtracking algorithm. The result is a dense grid of walls with a single unique path between any two points. It also features a solver that can visualize the shortest path.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |

@@ -3,6 +3,7 @@
 **Spirograph** simulates the geometric curves produced by a spirograph toy, where a smaller circle rolls inside (Hypotrochoid) or outside (Epitrochoid) a fixed larger circle. This creates intricate, floral, and symmetrical patterns.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |

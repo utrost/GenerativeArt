@@ -51,7 +51,7 @@ The application features a **Dynamic Parameter System**:
 *   **Tooltips**: Hovering over a parameter name displays its description.
 
 ## 5. Output management
-*   **Paper Size Support**: Native support for standard paper sizes (A4, A3, Letter) in both Portrait and Landscape. The preview automatically scales to fit the selected page.
+*   **Paper Size Support**: Native support for standard paper sizes (A4, A3, Letter) in both Portrait and Landscape. Default is A4 Landscape. The preview automatically scales to fit the selected page.
 *   **Real-Time SVG Rendering**: Uses `JSVG` library to render the SVG code directly to the screen with high-quality anti-aliasing.
 *   **Drop Shadow Preview**: The paper visually "floats" on the gray background to simulate the final look.
 *   **SVG Export**: One-click saving to `.svg` files for use with plotters or editing software.

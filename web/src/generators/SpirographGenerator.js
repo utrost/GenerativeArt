@@ -13,6 +13,7 @@ export class SpirographGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Hypotrochoid Classic", "Star Pattern", "Epitrochoid Loops", "Complex Web"], "Select a predefined style"),
             ParameterDefinition.selection("Type", "Hypotrochoid (Inside)", ["Hypotrochoid (Inside)", "Epitrochoid (Outside)"], "Curve Type"),
             ParameterDefinition.doubleVal("Outer Radius (R)", 300.0, 10.0, 500.0, "Fixed Circle Radius"),
             ParameterDefinition.doubleVal("Inner Radius (r)", 105.0, 1.0, 500.0, "Rolling Circle Radius"),
@@ -21,6 +22,50 @@ export class SpirographGenerator extends Generator {
             ParameterDefinition.doubleVal("Resolution", 0.05, 0.001, 1.0, "Step Size"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of Layers")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Hypotrochoid Classic":
+                    currentValues["Type"] = "Hypotrochoid (Inside)";
+                    currentValues["Outer Radius (R)"] = 300.0;
+                    currentValues["Inner Radius (r)"] = 105.0;
+                    currentValues["Pen Offset (d)"] = 80.0;
+                    currentValues["Revolutions"] = 50.0;
+                    return true;
+                case "Star Pattern":
+                    currentValues["Type"] = "Hypotrochoid (Inside)";
+                    currentValues["Outer Radius (R)"] = 300.0;
+                    currentValues["Inner Radius (r)"] = 85.0;
+                    currentValues["Pen Offset (d)"] = 120.0;
+                    currentValues["Revolutions"] = 17.0;
+                    return true;
+                case "Epitrochoid Loops":
+                    currentValues["Type"] = "Epitrochoid (Outside)";
+                    currentValues["Outer Radius (R)"] = 200.0;
+                    currentValues["Inner Radius (r)"] = 55.0;
+                    currentValues["Pen Offset (d)"] = 90.0;
+                    currentValues["Revolutions"] = 11.0;
+                    return true;
+                case "Complex Web":
+                    currentValues["Type"] = "Hypotrochoid (Inside)";
+                    currentValues["Outer Radius (R)"] = 350.0;
+                    currentValues["Inner Radius (r)"] = 160.0;
+                    currentValues["Pen Offset (d)"] = 140.0;
+                    currentValues["Revolutions"] = 32.0;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {
@@ -36,45 +81,70 @@ export class SpirographGenerator extends Generator {
 
         const width = 1000;
         const height = 1000;
-        const canvas = new SvgCanvas(width, height, numColors);
-        const centerX = width / 2;
-        const centerY = height / 2;
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
 
         const maxT = revolutions * 2 * Math.PI;
-
         let prevX = 0;
         let prevY = 0;
         let first = true;
 
+        const pathBuilders = Array(numColors).fill("");
+
         for (let t = 0; t <= maxT; t += resolution) {
             let x, y;
             if (isHypo) {
-                // x = (R - r) * cos(t) + d * cos(((R - r) / r) * t)
-                // y = (R - r) * sin(t) - d * sin(((R - r) / r) * t)
                 x = (R - r) * Math.cos(t) + d * Math.cos(((R - r) / r) * t);
                 y = (R - r) * Math.sin(t) - d * Math.sin(((R - r) / r) * t);
             } else {
-                // x = (R + r) * cos(t) - d * cos(((R + r) / r) * t)
-                // y = (R + r) * sin(t) - d * sin(((R + r) / r) * t)
                 x = (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t);
                 y = (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t);
             }
 
-            const screenX = centerX + x;
-            const screenY = centerY + y;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
 
             if (!first) {
-                // Cycle colors? JS % works same as Java for positive ints.
-                // t is double.
                 const layerIndex = Math.floor(t) % numColors;
-                canvas.addLine(layerIndex, prevX, prevY, screenX, screenY);
+                pathBuilders[layerIndex] += `M ${prevX.toFixed(2)} ${prevY.toFixed(2)} L ${x.toFixed(2)} ${y.toFixed(2)} `;
             }
 
-            prevX = screenX;
-            prevY = screenY;
+            prevX = x;
+            prevY = y;
             first = false;
         }
 
-        return canvas.toSvg();
+        const margin = 50.0;
+        let bboxWidth = maxX - minX;
+        let bboxHeight = maxY - minY;
+
+        if (bboxWidth <= 0) bboxWidth = 1;
+        if (bboxHeight <= 0) bboxHeight = 1;
+
+        const targetScale = Math.min((width - 2 * margin) / bboxWidth, (height - 2 * margin) / bboxHeight);
+        const offsetX = (width - bboxWidth * targetScale) / 2.0 - minX * targetScale;
+        const offsetY = (height - bboxHeight * targetScale) / 2.0 - minY * targetScale;
+
+        const layerColors = ["black", "#E31A1C", "#1F78B4", "#33A02C", "#FF7F00", "#6A3D9A"];
+
+        let svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${width} ${height}' width='${width}' height='${height}'>\n`;
+        svg += `<defs><clipPath id='pageClip'><rect width='${width}' height='${height}'/></clipPath></defs>\n`;
+        svg += `<rect width='${width}' height='${height}' fill='white'/>\n`;
+        svg += `<g clip-path='url(#pageClip)'>\n`;
+        svg += `  <g transform='translate(${offsetX.toFixed(1)}, ${offsetY.toFixed(1)}) scale(${targetScale.toFixed(4)})'>\n`;
+        
+        for (let i = 0; i < numColors; i++) {
+            if (pathBuilders[i].length > 0) {
+                const color = layerColors[i % layerColors.length];
+                svg += `    <path d='${pathBuilders[i]}' stroke='${color}' fill='none' stroke-width='1.0' vector-effect='non-scaling-stroke'/>\n`;
+            }
+        }
+        
+        svg += `  </g>\n`;
+        svg += `</g>\n</svg>`;
+
+        return svg;
     }
 }

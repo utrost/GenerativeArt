@@ -17,15 +17,58 @@ public class MagneticFieldGenerator implements ArtGenerator {
         return "Magnetic Field";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Dipole", "Complex Quadrupole", "Chaotic Multipole"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("lineCount", 500, 50, 2000, "Number of field lines"),
                 ParameterDefinition.doubleVal("lineWidth", 1.0, 0.1, 10.0, "Line Width"),
                 ParameterDefinition.integer("colorCount", 3, 1, 6, "Number of Colors"),
                 ParameterDefinition.integer("poleCount", 2, 1, 10, "Number of Magnetic Poles"),
                 ParameterDefinition.doubleVal("stepSize", 5.0, 1.0, 20.0, "Integration Step Size"),
                 ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Dipole":
+                    currentValues.put("lineCount", 800);
+                    currentValues.put("lineWidth", 1.0);
+                    currentValues.put("colorCount", 2);
+                    currentValues.put("poleCount", 2);
+                    currentValues.put("stepSize", 3.0);
+                    currentValues.put("seed", 101);
+                    return true;
+                case "Complex Quadrupole":
+                    currentValues.put("lineCount", 1500);
+                    currentValues.put("lineWidth", 0.5);
+                    currentValues.put("colorCount", 4);
+                    currentValues.put("poleCount", 4);
+                    currentValues.put("stepSize", 4.0);
+                    currentValues.put("seed", 404);
+                    return true;
+                case "Chaotic Multipole":
+                    currentValues.put("lineCount", 2000);
+                    currentValues.put("lineWidth", 0.2);
+                    currentValues.put("colorCount", 6);
+                    currentValues.put("poleCount", 10);
+                    currentValues.put("stepSize", 8.0);
+                    currentValues.put("seed", 999);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     private record Pole(double x, double y, double charge) {

@@ -4,6 +4,7 @@
 Visualizes chaos theory using the Clifford Attractor equations. The point coordinates are iteratively updated based on trigonometric functions of the previous coordinates, creating complex, often 3D-looking, folded structures.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 ### Iterations
 *   **Description**: Number of points/lines to draw.

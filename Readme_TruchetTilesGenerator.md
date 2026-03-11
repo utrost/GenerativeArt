@@ -4,6 +4,7 @@
 Generates tessellations using Truchet Tiles. The image is formed by a grid of square tiles, where each tile typically contains a pattern that connects to its neighbors regardless of orientation (e.g., quarter-circles at corners). Randomly rotating these tiles creates continuous, complex, maze-like paths.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 ### Rows / Columns
 *   **Description**: The grid resolution.

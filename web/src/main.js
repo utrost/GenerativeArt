@@ -41,7 +41,7 @@ const generators = [
 
 let activeGenerator = generators[0];
 let currentParams = {};
-let currentPaperSize = "A4_PORTRAIT"; // Default
+let currentPaperSize = "A4_LANDSCAPE"; // Default
 
 const generatorListEl = document.getElementById('generator-list');
 const activeNameEl = document.getElementById('active-generator-name');

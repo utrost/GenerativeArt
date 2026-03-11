@@ -14,6 +14,7 @@ export class VoronoiRipplesGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Classic Ripples", "Dense Bubbles", "Minimalist Rings", "Microscopic"], "Select a predefined style"),
             ParameterDefinition.integer("pointCount", 12, 2, 50, "Number of seed points"),
             ParameterDefinition.doubleVal("lineSpacing", 6.0, 2.0, 50.0, "Distance between concentric rings"),
             ParameterDefinition.doubleVal("lineWidth", 1.0, 0.1, 10.0, "Stroke width of the lines"),
@@ -21,6 +22,54 @@ export class VoronoiRipplesGenerator extends Generator {
             ParameterDefinition.integer("colorCount", 6, 1, 12, "Number of colors/layers (if not monochrome)"),
             ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Classic Ripples":
+                    currentValues["pointCount"] = 12;
+                    currentValues["lineSpacing"] = 6.0;
+                    currentValues["lineWidth"] = 1.0;
+                    currentValues["monochrome"] = false;
+                    currentValues["colorCount"] = 6;
+                    currentValues["seed"] = 1234;
+                    return true;
+                case "Dense Bubbles":
+                    currentValues["pointCount"] = 30;
+                    currentValues["lineSpacing"] = 3.0;
+                    currentValues["lineWidth"] = 0.5;
+                    currentValues["monochrome"] = false;
+                    currentValues["colorCount"] = 4;
+                    currentValues["seed"] = 5678;
+                    return true;
+                case "Minimalist Rings":
+                    currentValues["pointCount"] = 5;
+                    currentValues["lineSpacing"] = 15.0;
+                    currentValues["lineWidth"] = 2.0;
+                    currentValues["monochrome"] = true;
+                    currentValues["colorCount"] = 1;
+                    currentValues["seed"] = 9012;
+                    return true;
+                case "Microscopic":
+                    currentValues["pointCount"] = 50;
+                    currentValues["lineSpacing"] = 2.0;
+                    currentValues["lineWidth"] = 0.3;
+                    currentValues["monochrome"] = false;
+                    currentValues["colorCount"] = 3;
+                    currentValues["seed"] = 3456;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

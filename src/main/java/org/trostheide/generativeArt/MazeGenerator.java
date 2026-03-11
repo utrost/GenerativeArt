@@ -18,15 +18,66 @@ public class MazeGenerator implements ArtGenerator {
         return "Maze Generator";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Standard Grid", "Dense Labyrinth", "Large Blocks", "Solved Puzzle"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("rows", 20, 5, 100, "Rows"),
                 ParameterDefinition.integer("cols", 20, 5, 100, "Columns"),
                 ParameterDefinition.doubleVal("cellSize", 20.0, 5.0, 100.0, "Cell Size"),
                 ParameterDefinition.doubleVal("wallWidth", 2.0, 0.5, 10.0, "Wall Width"),
                 ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"),
                 ParameterDefinition.bool("solve", false, "Show Solution"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Standard Grid":
+                    currentValues.put("rows", 20);
+                    currentValues.put("cols", 20);
+                    currentValues.put("cellSize", 20.0);
+                    currentValues.put("wallWidth", 2.0);
+                    currentValues.put("seed", 1234);
+                    currentValues.put("solve", false);
+                    return true;
+                case "Dense Labyrinth":
+                    currentValues.put("rows", 50);
+                    currentValues.put("cols", 50);
+                    currentValues.put("cellSize", 10.0);
+                    currentValues.put("wallWidth", 1.0);
+                    currentValues.put("seed", 9999);
+                    currentValues.put("solve", false);
+                    return true;
+                case "Large Blocks":
+                    currentValues.put("rows", 10);
+                    currentValues.put("cols", 10);
+                    currentValues.put("cellSize", 50.0);
+                    currentValues.put("wallWidth", 4.0);
+                    currentValues.put("seed", 42);
+                    currentValues.put("solve", false);
+                    return true;
+                case "Solved Puzzle":
+                    currentValues.put("rows", 30);
+                    currentValues.put("cols", 30);
+                    currentValues.put("cellSize", 15.0);
+                    currentValues.put("wallWidth", 1.5);
+                    currentValues.put("seed", 777);
+                    currentValues.put("solve", true);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     private static class Cell {

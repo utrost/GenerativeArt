@@ -13,12 +13,57 @@ export class TwistedMoireGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Subtle Shift", "Vortex", "Offset Swirl", "Dense Interference"], "Select a predefined style"),
             ParameterDefinition.integer("lineCount", 80, 10, 500, "Number of vertical lines"),
             ParameterDefinition.doubleVal("twistStrength", 5.0, -20.0, 20.0, "Strength of the spiral twist"),
             ParameterDefinition.doubleVal("centerX", 0.5, 0.0, 1.0, "Center X of the twist (0-1)"),
             ParameterDefinition.doubleVal("centerY", 0.5, 0.0, 1.0, "Center Y of the twist (0-1)"),
             ParameterDefinition.doubleVal("layer2Rotation", 2.0, -180.0, 180.0, "Rotation offset for the second layer (degrees)")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Subtle Shift":
+                    currentValues["lineCount"] = 100;
+                    currentValues["twistStrength"] = 2.0;
+                    currentValues["centerX"] = 0.5;
+                    currentValues["centerY"] = 0.5;
+                    currentValues["layer2Rotation"] = 1.5;
+                    return true;
+                case "Vortex":
+                    currentValues["lineCount"] = 150;
+                    currentValues["twistStrength"] = 15.0;
+                    currentValues["centerX"] = 0.5;
+                    currentValues["centerY"] = 0.5;
+                    currentValues["layer2Rotation"] = 5.0;
+                    return true;
+                case "Offset Swirl":
+                    currentValues["lineCount"] = 80;
+                    currentValues["twistStrength"] = 8.0;
+                    currentValues["centerX"] = 0.3;
+                    currentValues["centerY"] = 0.7;
+                    currentValues["layer2Rotation"] = -3.0;
+                    return true;
+                case "Dense Interference":
+                    currentValues["lineCount"] = 200;
+                    currentValues["twistStrength"] = 4.0;
+                    currentValues["centerX"] = 0.5;
+                    currentValues["centerY"] = 0.5;
+                    currentValues["layer2Rotation"] = 0.5;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

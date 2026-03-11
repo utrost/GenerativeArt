@@ -21,14 +21,51 @@ public class CirclePackingGenerator implements ArtGenerator {
         return "Circle Packing";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Dense Bubbles", "Large Boulders", "Sparse Grid"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("Attempts", 2000, 100, 10000, "Number of circles to attempt"),
                 ParameterDefinition.doubleVal("Min Radius", 2.0, 1.0, 50.0, "Minimum circle size"),
                 ParameterDefinition.doubleVal("Max Radius", 50.0, 10.0, 200.0, "Maximum circle size"),
                 ParameterDefinition.doubleVal("Padding", 2.0, 0.0, 20.0, "Space between circles"),
                 ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Dense Bubbles":
+                    currentValues.put("Attempts", 8000);
+                    currentValues.put("Min Radius", 1.0);
+                    currentValues.put("Max Radius", 20.0);
+                    currentValues.put("Padding", 0.5);
+                    return true;
+                case "Large Boulders":
+                    currentValues.put("Attempts", 1000);
+                    currentValues.put("Min Radius", 10.0);
+                    currentValues.put("Max Radius", 150.0);
+                    currentValues.put("Padding", 5.0);
+                    return true;
+                case "Sparse Grid":
+                    currentValues.put("Attempts", 500);
+                    currentValues.put("Min Radius", 5.0);
+                    currentValues.put("Max Radius", 80.0);
+                    currentValues.put("Padding", 20.0);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     @Override

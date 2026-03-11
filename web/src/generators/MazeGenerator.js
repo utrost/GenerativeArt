@@ -23,6 +23,7 @@ export class MazeGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Standard Grid", "Dense Labyrinth", "Large Blocks", "Solved Puzzle"], "Select a predefined style"),
             ParameterDefinition.integer("rows", 20, 5, 100, "Rows"),
             ParameterDefinition.integer("cols", 20, 5, 100, "Columns"),
             ParameterDefinition.doubleVal("cellSize", 20.0, 5.0, 100.0, "Cell Size"),
@@ -30,6 +31,54 @@ export class MazeGenerator extends Generator {
             ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"),
             ParameterDefinition.bool("solve", false, "Show Solution")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Standard Grid":
+                    currentValues["rows"] = 20;
+                    currentValues["cols"] = 20;
+                    currentValues["cellSize"] = 20.0;
+                    currentValues["wallWidth"] = 2.0;
+                    currentValues["seed"] = 1234;
+                    currentValues["solve"] = false;
+                    return true;
+                case "Dense Labyrinth":
+                    currentValues["rows"] = 50;
+                    currentValues["cols"] = 50;
+                    currentValues["cellSize"] = 10.0;
+                    currentValues["wallWidth"] = 1.0;
+                    currentValues["seed"] = 9999;
+                    currentValues["solve"] = false;
+                    return true;
+                case "Large Blocks":
+                    currentValues["rows"] = 10;
+                    currentValues["cols"] = 10;
+                    currentValues["cellSize"] = 50.0;
+                    currentValues["wallWidth"] = 4.0;
+                    currentValues["seed"] = 42;
+                    currentValues["solve"] = false;
+                    return true;
+                case "Solved Puzzle":
+                    currentValues["rows"] = 30;
+                    currentValues["cols"] = 30;
+                    currentValues["cellSize"] = 15.0;
+                    currentValues["wallWidth"] = 1.5;
+                    currentValues["seed"] = 777;
+                    currentValues["solve"] = true;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

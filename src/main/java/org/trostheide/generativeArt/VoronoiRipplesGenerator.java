@@ -22,15 +22,66 @@ public class VoronoiRipplesGenerator implements ArtGenerator {
         return "Voronoi Ripples";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Classic Ripples", "Dense Bubbles", "Minimalist Rings", "Microscopic"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("pointCount", 12, 2, 50, "Number of seed points"),
                 ParameterDefinition.doubleVal("lineSpacing", 6.0, 2.0, 50.0, "Distance between concentric rings"),
                 ParameterDefinition.doubleVal("lineWidth", 1.0, 0.1, 10.0, "Stroke width of the lines"),
                 ParameterDefinition.bool("monochrome", false, "Use single color (Black)"),
                 ParameterDefinition.integer("colorCount", 6, 1, 12, "Number of colors/layers (if not monochrome)"),
                 ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Classic Ripples":
+                    currentValues.put("pointCount", 12);
+                    currentValues.put("lineSpacing", 6.0);
+                    currentValues.put("lineWidth", 1.0);
+                    currentValues.put("monochrome", false);
+                    currentValues.put("colorCount", 6);
+                    currentValues.put("seed", 1234);
+                    return true;
+                case "Dense Bubbles":
+                    currentValues.put("pointCount", 30);
+                    currentValues.put("lineSpacing", 3.0);
+                    currentValues.put("lineWidth", 0.5);
+                    currentValues.put("monochrome", false);
+                    currentValues.put("colorCount", 4);
+                    currentValues.put("seed", 5678);
+                    return true;
+                case "Minimalist Rings":
+                    currentValues.put("pointCount", 5);
+                    currentValues.put("lineSpacing", 15.0);
+                    currentValues.put("lineWidth", 2.0);
+                    currentValues.put("monochrome", true);
+                    currentValues.put("colorCount", 1);
+                    currentValues.put("seed", 9012);
+                    return true;
+                case "Microscopic":
+                    currentValues.put("pointCount", 50);
+                    currentValues.put("lineSpacing", 2.0);
+                    currentValues.put("lineWidth", 0.3);
+                    currentValues.put("monochrome", false);
+                    currentValues.put("colorCount", 3);
+                    currentValues.put("seed", 3456);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     private record Point(double x, double y) {

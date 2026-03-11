@@ -8,6 +8,7 @@ The **Voronoi Ripples** generator creates a pattern of concentric rings that loo
 3.  **Ripples**: Within each cell, concentric circular arcs are drawn around the seed. The arcs stop exactly at the boundary where they would become closer to another seed, creating sharp, precise junctions.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

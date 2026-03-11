@@ -8,6 +8,7 @@ The **Twisted Moiré** generator creates complex interference patterns by superi
 3.  **Interference Layer**: A second layer is drawn with the same twisted lines but rotated by a specified angle (`Layer 2 Rotation`). The intersection of these two mismatched grids creates the Moiré illusion.
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

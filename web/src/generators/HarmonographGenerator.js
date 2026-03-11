@@ -13,6 +13,7 @@ export class HarmonographGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Classic Rotary", "Complex Lateral", "Dense Web"], "Select a predefined style"),
             ParameterDefinition.bool("Rotary Mode", true, "Switch between Lateral and Rotary"),
             ParameterDefinition.integer("Steps", 10000, 1000, 100000, "Number of points"),
             ParameterDefinition.doubleVal("Frequency 1", 3.00, 0.1, 20.0, "Freq 1 (or X1)"),
@@ -26,6 +27,61 @@ export class HarmonographGenerator extends Generator {
             ParameterDefinition.doubleVal("Damping", 0.001, 0.0, 0.01, "Decay Rate"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of Layers")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Classic Rotary":
+                    currentValues["Rotary Mode"] = true;
+                    currentValues["Steps"] = 15000;
+                    currentValues["Frequency 1"] = 3.0;
+                    currentValues["Frequency 2"] = 3.01;
+                    currentValues["Frequency 3"] = 2.0;
+                    currentValues["Frequency 4"] = 2.01;
+                    currentValues["Amplitude 1"] = 200.0;
+                    currentValues["Amplitude 2"] = 200.0;
+                    currentValues["Phase 1"] = 90.0;
+                    currentValues["Phase 2"] = 0.0;
+                    currentValues["Damping"] = 0.001;
+                    return true;
+                case "Complex Lateral":
+                    currentValues["Rotary Mode"] = false;
+                    currentValues["Steps"] = 20000;
+                    currentValues["Frequency 1"] = 3.0;
+                    currentValues["Frequency 2"] = 2.0;
+                    currentValues["Frequency 3"] = 2.0;
+                    currentValues["Frequency 4"] = 3.0;
+                    currentValues["Amplitude 1"] = 250.0;
+                    currentValues["Amplitude 2"] = 150.0;
+                    currentValues["Phase 1"] = 45.0;
+                    currentValues["Phase 2"] = 135.0;
+                    currentValues["Damping"] = 0.002;
+                    return true;
+                case "Dense Web":
+                    currentValues["Rotary Mode"] = true;
+                    currentValues["Steps"] = 30000;
+                    currentValues["Frequency 1"] = 4.0;
+                    currentValues["Frequency 2"] = 4.05;
+                    currentValues["Frequency 3"] = 2.0;
+                    currentValues["Frequency 4"] = 2.0;
+                    currentValues["Amplitude 1"] = 300.0;
+                    currentValues["Amplitude 2"] = 100.0;
+                    currentValues["Phase 1"] = 0.0;
+                    currentValues["Phase 2"] = 90.0;
+                    currentValues["Damping"] = 0.0005;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {
@@ -44,14 +100,14 @@ export class HarmonographGenerator extends Generator {
 
         const width = params["width"] || 1000;
         const height = params["height"] || 1000;
-        const centerX = width / 2;
-        const centerY = height / 2;
-
-        const canvas = new SvgCanvas(width, height, numColors);
-
         let prevX = 0;
         let prevY = 0;
         let first = true;
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+
+        const pathBuilders = Array(numColors).fill("");
 
         for (let i = 0; i < steps; i++) {
             const t = i * 0.01;
@@ -66,19 +122,50 @@ export class HarmonographGenerator extends Generator {
                 y = decay * (a1 * Math.sin(f3 * t) + a2 * Math.sin(f4 * t));
             }
 
-            const screenX = centerX + x;
-            const screenY = centerY + y;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
 
             if (!first) {
                 const layerIndex = Math.floor(i / 500) % numColors;
-                canvas.addLine(layerIndex, prevX, prevY, screenX, screenY);
+                pathBuilders[layerIndex] += `M ${prevX.toFixed(2)} ${prevY.toFixed(2)} L ${x.toFixed(2)} ${y.toFixed(2)} `;
             }
 
-            prevX = screenX;
-            prevY = screenY;
+            prevX = x;
+            prevY = y;
             first = false;
         }
 
-        return canvas.toSvg();
+        const margin = 50.0;
+        let bboxWidth = maxX - minX;
+        let bboxHeight = maxY - minY;
+
+        if (bboxWidth <= 0) bboxWidth = 1;
+        if (bboxHeight <= 0) bboxHeight = 1;
+
+        const targetScale = Math.min((width - 2 * margin) / bboxWidth, (height - 2 * margin) / bboxHeight);
+        const offsetX = (width - bboxWidth * targetScale) / 2.0 - minX * targetScale;
+        const offsetY = (height - bboxHeight * targetScale) / 2.0 - minY * targetScale;
+
+        const layerColors = ["black", "#E31A1C", "#1F78B4", "#33A02C", "#FF7F00", "#6A3D9A"];
+
+        let svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${width} ${height}' width='${width}' height='${height}'>\n`;
+        svg += `<defs><clipPath id='pageClip'><rect width='${width}' height='${height}'/></clipPath></defs>\n`;
+        svg += `<rect width='${width}' height='${height}' fill='white'/>\n`;
+        svg += `<g clip-path='url(#pageClip)'>\n`;
+        svg += `  <g transform='translate(${offsetX.toFixed(1)}, ${offsetY.toFixed(1)}) scale(${targetScale.toFixed(4)})'>\n`;
+        
+        for (let i = 0; i < numColors; i++) {
+            if (pathBuilders[i].length > 0) {
+                const color = layerColors[i % layerColors.length];
+                svg += `    <path d='${pathBuilders[i]}' stroke='${color}' fill='none' stroke-width='1.0' vector-effect='non-scaling-stroke'/>\n`;
+            }
+        }
+        
+        svg += `  </g>\n`;
+        svg += `</g>\n</svg>`;
+
+        return svg;
     }
 }

@@ -19,14 +19,54 @@ public class ParametricGridGenerator implements ArtGenerator {
         return "Parametric Grid";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Subtle Disruption", "High Chaos", "Dense Matrix"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("macroSize", 5, 2, 20, "Macro Grid Size (blocks)"),
                 ParameterDefinition.integer("microSize", 10, 2, 30, "Micro Grid Size (squares per block)"),
                 ParameterDefinition.doubleVal("maxRotation", 45.0, 0.0, 180.0, "Max Chaos Rotation (degrees)"),
                 ParameterDefinition.doubleVal("minScale", 0.2, 0.0, 1.0, "Min Scale at bottom"),
                 ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Subtle Disruption":
+                    currentValues.put("macroSize", 4);
+                    currentValues.put("microSize", 8);
+                    currentValues.put("maxRotation", 15.0);
+                    currentValues.put("minScale", 0.5);
+                    currentValues.put("seed", 10);
+                    return true;
+                case "High Chaos":
+                    currentValues.put("macroSize", 6);
+                    currentValues.put("microSize", 12);
+                    currentValues.put("maxRotation", 90.0);
+                    currentValues.put("minScale", 0.1);
+                    currentValues.put("seed", 20);
+                    return true;
+                case "Dense Matrix":
+                    currentValues.put("macroSize", 10);
+                    currentValues.put("microSize", 20);
+                    currentValues.put("maxRotation", 30.0);
+                    currentValues.put("minScale", 0.3);
+                    currentValues.put("seed", 30);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     @Override

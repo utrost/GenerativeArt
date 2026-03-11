@@ -14,6 +14,7 @@ export class MagneticFieldGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Dipole", "Complex Quadrupole", "Chaotic Multipole"], "Select a predefined style"),
             ParameterDefinition.integer("lineCount", 500, 50, 2000, "Number of field lines"),
             ParameterDefinition.doubleVal("lineWidth", 1.0, 0.1, 10.0, "Line Width"),
             ParameterDefinition.integer("colorCount", 3, 1, 6, "Number of Colors"),
@@ -21,6 +22,46 @@ export class MagneticFieldGenerator extends Generator {
             ParameterDefinition.doubleVal("stepSize", 5.0, 1.0, 20.0, "Integration Step Size"),
             ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Dipole":
+                    currentValues["lineCount"] = 800;
+                    currentValues["lineWidth"] = 1.0;
+                    currentValues["colorCount"] = 2;
+                    currentValues["poleCount"] = 2;
+                    currentValues["stepSize"] = 3.0;
+                    currentValues["seed"] = 101;
+                    return true;
+                case "Complex Quadrupole":
+                    currentValues["lineCount"] = 1500;
+                    currentValues["lineWidth"] = 0.5;
+                    currentValues["colorCount"] = 4;
+                    currentValues["poleCount"] = 4;
+                    currentValues["stepSize"] = 4.0;
+                    currentValues["seed"] = 404;
+                    return true;
+                case "Chaotic Multipole":
+                    currentValues["lineCount"] = 2000;
+                    currentValues["lineWidth"] = 0.2;
+                    currentValues["colorCount"] = 6;
+                    currentValues["poleCount"] = 10;
+                    currentValues["stepSize"] = 8.0;
+                    currentValues["seed"] = 999;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

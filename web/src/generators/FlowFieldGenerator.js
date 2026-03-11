@@ -20,6 +20,7 @@ export class FlowFieldGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
+            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Fine Mist", "Turbulent Rivers", "Macro Flow"], "Select a predefined style"),
             ParameterDefinition.integer("Particles", 2000, 100, 10000, "Number of lines to draw"),
             ParameterDefinition.doubleVal("Noise Scale", 0.005, 0.001, 0.05, "Zoom level of the noise"),
             ParameterDefinition.integer("Step Length", 10, 1, 50, "Length of each line segment"),
@@ -27,6 +28,40 @@ export class FlowFieldGenerator extends Generator {
             ParameterDefinition.integer("Seed", 12345, 1, 999999, "Random seed"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
         ];
+    }
+
+    onParameterChanged(paramName, newValue, currentValues) {
+        if (paramName === "Preset" && typeof newValue === "string") {
+            const preset = newValue;
+            switch (preset) {
+                case "Fine Mist":
+                    currentValues["Particles"] = 8000;
+                    currentValues["Noise Scale"] = 0.008;
+                    currentValues["Step Length"] = 2;
+                    currentValues["Max Steps"] = 200;
+                    return true;
+                case "Turbulent Rivers":
+                    currentValues["Particles"] = 1500;
+                    currentValues["Noise Scale"] = 0.02;
+                    currentValues["Step Length"] = 15;
+                    currentValues["Max Steps"] = 80;
+                    return true;
+                case "Macro Flow":
+                    currentValues["Particles"] = 500;
+                    currentValues["Noise Scale"] = 0.001;
+                    currentValues["Step Length"] = 25;
+                    currentValues["Max Steps"] = 150;
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (paramName !== "Preset" && currentValues["Preset"] !== "Custom") {
+            currentValues["Preset"] = "Custom";
+            return true;
+        }
+        return false;
     }
 
     generate(params) {

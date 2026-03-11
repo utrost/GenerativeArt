@@ -28,9 +28,11 @@ public class FlowFieldGenerator implements ArtGenerator {
         return "Flow Field (Perlin)";
     }
 
-    @Override
     public List<ParameterDefinition> getParameterDefinitions() {
         return List.of(
+                ParameterDefinition.selection("Preset", "Custom", 
+                    java.util.Arrays.asList("Custom", "Fine Mist", "Turbulent Rivers", "Macro Flow"), 
+                    "Select a predefined style"),
                 ParameterDefinition.integer("Particles", 2000, 100, 10000, "Number of lines to draw"),
                 ParameterDefinition.doubleVal("Noise Scale", 0.005, 0.001, 0.05,
                         "Zoom level of the noise (lower = smooth, higher = chaos)"),
@@ -38,6 +40,41 @@ public class FlowFieldGenerator implements ArtGenerator {
                 ParameterDefinition.integer("Max Steps", 50, 10, 500, "Maximum length of a line"),
                 ParameterDefinition.integer("Seed", 12345, 1, 999999, "Random seed"),
                 ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers"));
+    }
+
+    @Override
+    public boolean onParameterChanged(String paramName, Object newValue, Map<String, Object> currentValues) {
+        if ("Preset".equals(paramName) && newValue instanceof String) {
+            String preset = (String) newValue;
+            switch (preset) {
+                case "Fine Mist":
+                    currentValues.put("Particles", 8000);
+                    currentValues.put("Noise Scale", 0.008);
+                    currentValues.put("Step Length", 2);
+                    currentValues.put("Max Steps", 200);
+                    return true;
+                case "Turbulent Rivers":
+                    currentValues.put("Particles", 1500);
+                    currentValues.put("Noise Scale", 0.02);
+                    currentValues.put("Step Length", 15);
+                    currentValues.put("Max Steps", 80);
+                    return true;
+                case "Macro Flow":
+                    currentValues.put("Particles", 500);
+                    currentValues.put("Noise Scale", 0.001);
+                    currentValues.put("Step Length", 25);
+                    currentValues.put("Max Steps", 150);
+                    return true;
+                case "Custom":
+                default:
+                    return false;
+            }
+        }
+        if (!"Preset".equals(paramName) && !"Custom".equals(currentValues.get("Preset"))) {
+            currentValues.put("Preset", "Custom");
+            return true;
+        }
+        return false;
     }
 
     @Override

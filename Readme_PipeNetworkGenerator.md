@@ -8,6 +8,7 @@ The **Pipe Network** generator creates intricate, weaving pipe structures that l
 3.  **Rendering**: The result is rendered with "flanges" at the connections and gaps at crossings to simulate 3D depth (pipes passing over/under each other).
 
 ## Parameters
+*   **Preset**: A selection of predefined styles that instantly configure all other parameters to yield specific artistic patterns (e.g., "Classic", "Dense", "Abstract"). Selecting a preset overrides manual adjustments.
 
 | Parameter | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
