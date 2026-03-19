@@ -19,6 +19,11 @@ import org.trostheide.generativeArt.MagneticFieldGenerator;
 import org.trostheide.generativeArt.FourierSeriesGenerator;
 import org.trostheide.generativeArt.MazeGenerator;
 import org.trostheide.generativeArt.SpirographGenerator;
+import org.trostheide.generativeArt.PenroseTilingGenerator;
+import org.trostheide.generativeArt.WaveInterferenceGenerator;
+import org.trostheide.generativeArt.ChladniPatternGenerator;
+import org.trostheide.generativeArt.CelticKnotGenerator;
+import org.trostheide.generativeArt.ContourMapGenerator;
 
 import javax.swing.*;
 
@@ -42,6 +47,11 @@ public class SwingApp {
         GeneratorRegistry.register(new FourierSeriesGenerator());
         GeneratorRegistry.register(new MazeGenerator());
         GeneratorRegistry.register(new SpirographGenerator());
+        GeneratorRegistry.register(new PenroseTilingGenerator());
+        GeneratorRegistry.register(new WaveInterferenceGenerator());
+        GeneratorRegistry.register(new ChladniPatternGenerator());
+        GeneratorRegistry.register(new CelticKnotGenerator());
+        GeneratorRegistry.register(new ContourMapGenerator());
 
         // Setup UI
         FlatDarkLaf.setup();

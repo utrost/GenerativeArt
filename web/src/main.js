@@ -15,6 +15,11 @@ import { MagneticFieldGenerator } from './generators/MagneticFieldGenerator';
 import { FourierSeriesGenerator } from './generators/FourierSeriesGenerator';
 import { MazeGenerator } from './generators/MazeGenerator';
 import { SpirographGenerator } from './generators/SpirographGenerator';
+import { PenroseTilingGenerator } from './generators/PenroseTilingGenerator';
+import { WaveInterferenceGenerator } from './generators/WaveInterferenceGenerator';
+import { ChladniPatternGenerator } from './generators/ChladniPatternGenerator';
+import { CelticKnotGenerator } from './generators/CelticKnotGenerator';
+import { ContourMapGenerator } from './generators/ContourMapGenerator';
 
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
@@ -36,7 +41,12 @@ const generators = [
   new MagneticFieldGenerator(),
   new FourierSeriesGenerator(),
   new MazeGenerator(),
-  new SpirographGenerator()
+  new SpirographGenerator(),
+  new PenroseTilingGenerator(),
+  new WaveInterferenceGenerator(),
+  new ChladniPatternGenerator(),
+  new CelticKnotGenerator(),
+  new ContourMapGenerator()
 ];
 
 let activeGenerator = generators[0];
