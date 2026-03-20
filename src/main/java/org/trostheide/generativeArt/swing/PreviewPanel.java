@@ -23,7 +23,7 @@ public class PreviewPanel extends JPanel {
     private String lastSvgContent;
     private final SVGLoader loader = new SVGLoader();
     private PaperSize currentPaperSize = PaperSize.A4_PORTRAIT;
-    private final JPanel canvas;
+    private JPanel canvas;
     private double zoomLevel = 1.0;
     private final JLabel zoomLabel;
 

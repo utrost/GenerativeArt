@@ -12,8 +12,8 @@ public class MainFrame extends JFrame {
     private final GeneratorListPanel listPanel;
     private final ParametersPanel paramsPanel;
     private final PreviewPanel previewPanel;
-    private final JLabel statusLabel;
-    private final JProgressBar progressBar;
+    private JLabel statusLabel;
+    private JProgressBar progressBar;
     private ArtGenerator currentGenerator;
     private Timer autoGenerateTimer;
 
