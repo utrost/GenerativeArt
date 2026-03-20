@@ -14,7 +14,7 @@ This document outlines the key features and capabilities of the original Java Sw
 *   **Responsive**: The UI adapts to window resizing, with `JSplitPane` allowing users to adjust the ratio between controls and preview.
 
 ## 3. Art Generators
-The application includes **17 distinct algorithms** covering various styles of generative art:
+The application includes **22 distinct algorithms** covering various styles of generative art:
 
 ### Simulation & Nature
 *   **Reaction Diffusion**: Simulates chemical patterns (Gray-Scott model) vectorized using Marching Squares.
@@ -22,6 +22,7 @@ The application includes **17 distinct algorithms** covering various styles of g
 *   **Phyllotaxis**: Mathematical sunflower spirals.
 *   **Circle Packing**: Non-overlapping organic bubble structures.
 *   **Magnetic Field**: Simulates particle trajectories through magnetic poles.
+*   **Contour Map**: Topographic contour lines from procedural noise landscapes.
 
 ### Geometry & Tiling
 *   **Truchet Tiles**: Complex mazes built from simple rotating tiles.
@@ -29,6 +30,8 @@ The application includes **17 distinct algorithms** covering various styles of g
 *   **Parametric Grid**: A grid of shapes that evolves chaotically across the X/Y axis.
 *   **Pipe Network**: Industrial-looking pipe mazes using Wave Function Collapse logic.
 *   **Maze Generator**: Perfect solvable mazes using recursive backtracking.
+*   **Penrose Tiling**: Aperiodic tilings with five-fold symmetry (kites and darts).
+*   **Celtic Knot**: Interlaced knotwork patterns inspired by Celtic art traditions.
 
 ### Math & Chaos
 *   **Strange Attractors**: Visualizes millions of points in chaotic orbits (Clifford Attractors).
@@ -40,6 +43,8 @@ The application includes **17 distinct algorithms** covering various styles of g
 ### Visual Effects
 *   **Generative Ribbon**: 3D-like folded structures created by lofting lines.
 *   **Twisted Moiré**: Interference patterns created by overlapping distorted grids.
+*   **Wave Interference**: Overlapping circular wave patterns from multiple sources.
+*   **Chladni Patterns**: Resonance patterns on vibrating plates (nodal lines).
 
 ## 4. Parameter Controls
 The application features a **Dynamic Parameter System**:

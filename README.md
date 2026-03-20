@@ -12,7 +12,7 @@ A powerful, extensible framework for creating generative art, optimized for pen 
 
 ## 🎨 Available Generators
 
-The framework currently includes **17 distinct generative algorithms**, all ported to both Java and Web versions:
+The framework currently includes **22 distinct generative algorithms**, all ported to both Java and Web versions:
 
 1.  **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
 2.  **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
@@ -31,6 +31,11 @@ The framework currently includes **17 distinct generative algorithms**, all port
 15. **Fourier Series**: Visualization of wave summation principles.
 16. **Maze Generator**: Perfect solvable mazes using recursive backtracking.
 17. **Spirograph**: Epicycloid and Hypocycloid curves.
+18. **Penrose Tiling**: Aperiodic tilings with five-fold symmetry (kites and darts).
+19. **Wave Interference**: Overlapping circular wave patterns from multiple sources.
+20. **Chladni Patterns**: Resonance patterns on vibrating plates (nodal lines).
+21. **Celtic Knot**: Interlaced knotwork patterns inspired by Celtic art traditions.
+22. **Contour Map**: Topographic contour lines from procedural noise landscapes.
 
 ---
 
@@ -47,7 +52,7 @@ The framework currently includes **17 distinct generative algorithms**, all port
   </tr>
   <tr>
     <td align="center"><img src="images/pipe-network.webp" alt="Pipe Network" width="380"><br><b>Pipe Network</b><br>Industrial pipes via Wave Function Collapse</td>
-    <td align="center"><em>+ 12 more generators in the <a href="https://utrost.github.io/GenerativeArt/">Live Demo</a></em></td>
+    <td align="center"><em>+ 17 more generators in the <a href="https://utrost.github.io/GenerativeArt/">Live Demo</a></em></td>
   </tr>
 </table>
 
