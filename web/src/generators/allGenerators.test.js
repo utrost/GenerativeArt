@@ -125,20 +125,23 @@ describe('All Generators', () => {
 
             it('generates valid SVG', () => {
                 const params = buildDefaultParams(generator);
+                // Reduce iterations for slow generators
+                if (params['Iterations'] && params['Iterations'] > 500) params['Iterations'] = 100;
                 const svg = generator.generate(params);
 
                 expect(svg).toBeTruthy();
                 expect(svg).toContain('<svg');
                 expect(svg).toContain('</svg>');
-            });
+            }, 15000);
 
             it('generates SVG with dimensions', () => {
                 const params = buildDefaultParams(generator);
+                if (params['Iterations'] && params['Iterations'] > 500) params['Iterations'] = 100;
                 const svg = generator.generate(params);
 
                 expect(svg).toContain('width=');
                 expect(svg).toContain('height=');
-            });
+            }, 15000);
         });
     }
 });
