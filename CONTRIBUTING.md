@@ -18,6 +18,20 @@
 3. Write a `Readme_YourGenerator.md` documenting the algorithm
 4. Register in both Java and Web entry points
 
+## Running Tests
+
+### Java
+```bash
+mvn test
+```
+
+### Web
+```bash
+cd web && npm test
+```
+
+Please ensure all tests pass before submitting a pull request. When adding a new generator, add it to the parameterized test lists in both `AllGeneratorsTest.java` and `web/src/generators/allGenerators.test.js`.
+
 ## Code Style
 
 - Java: standard conventions, 4-space indent
