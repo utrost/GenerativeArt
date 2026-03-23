@@ -145,6 +145,34 @@ The web version creates a modern, responsive experience accessible directly in t
 
 ---
 
+## 🧪 Testing
+
+Both Java and Web codebases include comprehensive test suites.
+
+### Java Tests (JUnit 5)
+
+```bash
+mvn test
+```
+
+Tests cover:
+*   **Core classes**: `SvgCanvas`, `ParameterDefinition`, `PaperSize`, `SimpleJson`, `GeneratorRegistry`, `PerlinNoise`
+*   **All 22 generators**: Parameterized tests validating IDs, display names, parameter definitions, numeric ranges, and SVG output
+
+### Web Tests (Vitest)
+
+```bash
+cd web
+npm install
+npm test
+```
+
+Tests cover:
+*   **Core classes**: `SvgCanvas`, `ParameterDefinition`, `PaperSize`, `SeededRandom`
+*   **All 22 generators**: Validation of IDs, display names, parameter definitions, numeric ranges, and SVG output
+
+---
+
 ## 🛠 Plotter Optimization
 
 Both versions of the application are designed with pen plotters in mind:
