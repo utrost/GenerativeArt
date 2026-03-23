@@ -23,10 +23,10 @@ public class PipeNetworkGenerator implements ArtGenerator {
                 ParameterDefinition.selection("Preset", "Custom", 
                     java.util.Arrays.asList("Custom", "Dense Industrial", "Large Conduits", "Complex Maze"), 
                     "Select a predefined style"),
-                ParameterDefinition.integer("rows", 10, 3, 50, "Grid Rows"),
-                ParameterDefinition.integer("cols", 10, 3, 50, "Grid Columns"),
-                ParameterDefinition.doubleVal("pipeWidth", 15.0, 1.0, 50.0, "Pipe Width"),
-                ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"));
+                ParameterDefinition.integer("Rows", 10, 3, 50, "Grid Rows"),
+                ParameterDefinition.integer("Cols", 10, 3, 50, "Grid Columns"),
+                ParameterDefinition.doubleVal("Pipe Width", 15.0, 1.0, 50.0, "Pipe Width"),
+                ParameterDefinition.integer("Seed", 1234, 0, 100000, "Random Seed"));
     }
 
     @Override
@@ -35,22 +35,22 @@ public class PipeNetworkGenerator implements ArtGenerator {
             String preset = (String) newValue;
             switch (preset) {
                 case "Dense Industrial":
-                    currentValues.put("rows", 20);
-                    currentValues.put("cols", 20);
-                    currentValues.put("pipeWidth", 10.0);
-                    currentValues.put("seed", 101);
+                    currentValues.put("Rows", 20);
+                    currentValues.put("Cols", 20);
+                    currentValues.put("Pipe Width", 10.0);
+                    currentValues.put("Seed", 101);
                     return true;
                 case "Large Conduits":
-                    currentValues.put("rows", 5);
-                    currentValues.put("cols", 5);
-                    currentValues.put("pipeWidth", 30.0);
-                    currentValues.put("seed", 404);
+                    currentValues.put("Rows", 5);
+                    currentValues.put("Cols", 5);
+                    currentValues.put("Pipe Width", 30.0);
+                    currentValues.put("Seed", 404);
                     return true;
                 case "Complex Maze":
-                    currentValues.put("rows", 30);
-                    currentValues.put("cols", 30);
-                    currentValues.put("pipeWidth", 5.0);
-                    currentValues.put("seed", 999);
+                    currentValues.put("Rows", 30);
+                    currentValues.put("Cols", 30);
+                    currentValues.put("Pipe Width", 5.0);
+                    currentValues.put("Seed", 999);
                     return true;
                 case "Custom":
                 default:
@@ -114,10 +114,10 @@ public class PipeNetworkGenerator implements ArtGenerator {
     @Override
     @SuppressWarnings("unchecked")
     public String generate(Map<String, Object> params) {
-        int rows = (int) params.getOrDefault("rows", 10);
-        int cols = (int) params.getOrDefault("cols", 10);
-        double pipeWidth = (double) params.getOrDefault("pipeWidth", 15.0);
-        int seed = (int) params.getOrDefault("seed", 1234);
+        int rows = (int) params.getOrDefault("Rows", 10);
+        int cols = (int) params.getOrDefault("Cols", 10);
+        double pipeWidth = (double) params.getOrDefault("Pipe Width", 15.0);
+        int seed = (int) params.getOrDefault("Seed", 1234);
 
         Random rand = new Random(seed);
 
