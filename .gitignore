@@ -18,6 +18,7 @@ out/
 .settings
 
 ### Web ###
+node_modules/
 web/node_modules/
 web/dist/
 
