@@ -1,6 +1,6 @@
 const LINE_RE = /x1='([\d.-]+)'\s*y1='([\d.-]+)'\s*x2='([\d.-]+)'\s*y2='([\d.-]+)'/;
 const PATH_D_RE = /d='([^']*)'/;
-const COORD_RE = /([\d.-]+)[,\s]+([\d.-]+)/g;
+const NUM_RE = /-?\d+(?:\.\d+)?/g;
 
 export class SvgCanvas {
     constructor(width, height, numLayers) {
@@ -71,23 +71,12 @@ function getEndpoints(element) {
     const pathMatch = element.match(PATH_D_RE);
     if (pathMatch) {
         const d = pathMatch[1];
-        const re = new RegExp(COORD_RE.source, 'g');
-        let m;
-        let startX, startY, endX, endY;
-        let found = false;
-        while ((m = re.exec(d)) !== null) {
-            const x = parseFloat(m[1]);
-            const y = parseFloat(m[2]);
-            if (!found) {
-                startX = x;
-                startY = y;
-                found = true;
-            }
-            endX = x;
-            endY = y;
-        }
-        if (found) {
-            return [startX, startY, endX, endY];
+        const nums = d.match(NUM_RE)?.map(Number) ?? [];
+        // The first pair is the initial M point. For the simple generator paths
+        // used here, the final pair is the path target (including arcs, where
+        // the preceding radii/flags are not drawable coordinates).
+        if (nums.length >= 4) {
+            return [nums[0], nums[1], nums[nums.length - 2], nums[nums.length - 1]];
         }
     }
 
@@ -110,7 +99,12 @@ function reversePath(element) {
     if (!dm) return element;
 
     const d = dm[1];
-    const re = new RegExp(COORD_RE.source, 'g');
+    // Only reverse simple polyline paths. Arc/curve commands contain radii,
+    // flags, and control points; reversing them as coordinate pairs turns them
+    // into bogus straight segments (often through 0,0).
+    if (/[^\s\d.,MLml-]/.test(d)) return element;
+
+    const re = /(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/g;
     const coords = [];
     let m;
     while ((m = re.exec(d)) !== null) {
@@ -130,7 +124,18 @@ function reversePath(element) {
     return element.substring(0, dStart) + newD + element.substring(dEnd);
 }
 
-/** Reverse an SVG element (line or path). */
+/** Return true if an element can safely be reversed without changing its shape. */
+function isReversibleElement(element) {
+    const trimmed = element.trim();
+    if (trimmed.startsWith('<line')) return true;
+    if (!trimmed.startsWith('<path')) return false;
+
+    const dm = element.match(PATH_D_RE);
+    if (!dm) return false;
+    return !/[^\s\d.,MLml-]/.test(dm[1]);
+}
+
+/** Reverse an SVG element (line or simple polyline path). */
 function reverseElement(element) {
     const trimmed = element.trim();
     if (trimmed.startsWith('<line')) return reverseLine(element);
@@ -176,7 +181,8 @@ function optimizeLayer(elements) {
             if (used[idx]) continue;
 
             const dStart = distSq(curX, curY, starts[idx][0], starts[idx][1]);
-            const dEnd = distSq(curX, curY, ends[idx][0], ends[idx][1]);
+            const canReverse = isReversibleElement(elements[idx]);
+            const dEnd = canReverse ? distSq(curX, curY, ends[idx][0], ends[idx][1]) : Infinity;
 
             if (dStart < bestDist) {
                 bestDist = dStart;

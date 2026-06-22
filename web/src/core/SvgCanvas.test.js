@@ -106,4 +106,15 @@ describe('SvgCanvas', () => {
         expect(svg).toContain('</svg>');
         expect(svg).not.toContain("id='layer_");
     });
+
+    it('does not convert arc paths into straight lines during path optimization', () => {
+        const canvas = new SvgCanvas(200, 200, 1);
+        canvas.addLine(0, 0, 0, 150, 150);
+        canvas.addRaw(0, "<path d='M 100 100 A 50 50 0 0 0 150 150' fill='none' stroke-width='1.5' />");
+
+        const svg = canvas.toSvg();
+
+        expect(svg).toContain("A 50 50 0 0 0");
+        expect(svg).not.toContain('L 0,0');
+    });
 });
