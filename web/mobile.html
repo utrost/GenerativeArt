@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Generative Art Mobile Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/ui/mobile.css">
+  </head>
+  <body>
+    <div id="mobile-app" class="mobile-studio">
+      <header class="mobile-toolbar">
+        <div class="mobile-brand">
+          <h1>GenArt</h1>
+          <a href="https://simiono.com/Generative-Art" title="Read about this project">by simiono</a>
+        </div>
+        <label class="generator-picker" for="mobile-generator-select">
+          <span>Generator</span>
+          <select id="mobile-generator-select"></select>
+        </label>
+      </header>
+
+      <main class="mobile-preview" aria-live="polite">
+        <div class="canvas-shell">
+          <div id="mobile-art-output"></div>
+        </div>
+      </main>
+
+      <footer class="mobile-actions" aria-label="Main actions">
+        <button id="btn-mobile-generate" class="primary-btn">Generate</button>
+        <button id="btn-mobile-controls" class="secondary-btn" aria-expanded="false" aria-controls="mobile-controls-sheet">Controls</button>
+        <button id="btn-mobile-download" class="secondary-btn">Download</button>
+      </footer>
+
+      <div id="mobile-sheet-backdrop" class="sheet-backdrop" hidden></div>
+      <aside id="mobile-controls-sheet" class="bottom-sheet" aria-hidden="true" aria-labelledby="mobile-active-generator-name">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <span class="eyebrow">Controls</span>
+            <h2 id="mobile-active-generator-name">Select Generator</h2>
+          </div>
+          <button id="btn-mobile-close-controls" class="icon-btn" aria-label="Close controls">&times;</button>
+        </div>
+        <div id="mobile-controls-container" class="controls-container"></div>
+        <button id="btn-mobile-help" class="secondary-btn">Help</button>
+      </aside>
+    </div>
+    <script type="module" src="/src/mobile.js"></script>
+  </body>
+</html>
