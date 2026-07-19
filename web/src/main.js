@@ -23,6 +23,9 @@ import { ContourMapGenerator } from './generators/ContourMapGenerator';
 
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
+import { registerServiceWorker } from './registerServiceWorker.js';
+
+registerServiceWorker();
 
 const generators = [
   new GenerativeRibbon(),
