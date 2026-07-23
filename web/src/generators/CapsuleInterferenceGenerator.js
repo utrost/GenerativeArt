@@ -22,6 +22,9 @@ export class CapsuleInterferenceGenerator extends Generator {
             ParameterDefinition.doubleVal('cornerRadius', 46.0, 5.0, 220.0, 'Rounded corner radius before inset clamping'),
             ParameterDefinition.doubleVal('rotationSpread', 118.0, 0.0, 180.0, 'Total angular spread across all stacks'),
             ParameterDefinition.doubleVal('jitter', 70.0, 0.0, 180.0, 'Seeded translation and rotation looseness'),
+            ParameterDefinition.selection('colorMode', 'By stack', ['Single pen', 'By stack', 'Contour bands', 'Stacked passes'], 'How paths are assigned to SVG pen-color layers'),
+            ParameterDefinition.integer('colorLayers', 2, 1, 6, 'Number of plotted color layers to emit'),
+            ParameterDefinition.doubleVal('registrationOffset', 0.0, 0.0, 16.0, 'Small per-color offset for stacked multi-pen passes'),
             ParameterDefinition.doubleVal('strokeWidth', 0.75, 0.1, 5.0, 'Preview stroke width; physical line width comes from the pen'),
             ParameterDefinition.integer('seed', 303, 1, 99999, 'Deterministic random seed'),
         ];
@@ -40,6 +43,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         cornerRadius: 46.0,
                         rotationSpread: 118.0,
                         jitter: 70.0,
+                        colorMode: 'By stack',
+                        colorLayers: 2,
+                        registrationOffset: 0.0,
                         strokeWidth: 0.75,
                         seed: 303,
                     });
@@ -54,6 +60,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         cornerRadius: 46.0,
                         rotationSpread: 82.0,
                         jitter: 38.0,
+                        colorMode: 'By stack',
+                        colorLayers: 2,
+                        registrationOffset: 1.5,
                         strokeWidth: 0.8,
                         seed: 91,
                     });
@@ -68,6 +77,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         cornerRadius: 60.0,
                         rotationSpread: 156.0,
                         jitter: 78.0,
+                        colorMode: 'Contour bands',
+                        colorLayers: 4,
+                        registrationOffset: 2.0,
                         strokeWidth: 0.7,
                         seed: 611,
                     });
@@ -82,6 +94,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         cornerRadius: 72.0,
                         rotationSpread: 148.0,
                         jitter: 105.0,
+                        colorMode: 'Stacked passes',
+                        colorLayers: 3,
+                        registrationOffset: 5.0,
                         strokeWidth: 1.0,
                         seed: 44,
                     });
@@ -109,10 +124,14 @@ export class CapsuleInterferenceGenerator extends Generator {
         const cornerRadius = numberParam(params, 'cornerRadius', 52.0);
         const rotationSpread = numberParam(params, 'rotationSpread', 128.0);
         const jitter = numberParam(params, 'jitter', 22.0);
+        const colorMode = typeof params.colorMode === 'string' ? params.colorMode : 'By stack';
+        const colorLayers = clamp(Math.floor(numberParam(params, 'colorLayers', 2)), 1, 6);
+        const registrationOffset = numberParam(params, 'registrationOffset', 0.0);
         const strokeWidth = numberParam(params, 'strokeWidth', 0.9);
         const seed = Math.floor(numberParam(params, 'seed', 303));
 
-        const canvas = new SvgCanvas(width, height, 2);
+        const canvas = new SvgCanvas(width, height, colorMode === 'Single pen' ? 1 : colorLayers);
+        canvas.layerColors = ['#F05A4A', '#1FA2E1', '#8E63CE', '#F6A11A', '#33A02C', '#6A3D9A'];
         canvas.setStrokeWidth(strokeWidth);
         const paths = [];
 
@@ -133,7 +152,7 @@ export class CapsuleInterferenceGenerator extends Generator {
             const across = wave * spanY * 0.5 + (rng() - 0.5) * jitter * 0.95;
             const localCx = cx + along * Math.cos(compositionAngle) - across * Math.sin(compositionAngle);
             const localCy = cy + along * Math.sin(compositionAngle) + across * Math.cos(compositionAngle);
-            const angleDeg = startAngle + angleStep * s + (rng() - 0.5) * jitter * 0.38;
+            const angleDeg = 90 + startAngle + angleStep * s + (rng() - 0.5) * jitter * 0.38;
             const wScale = 0.86 + rng() * 0.30;
             const hScale = 0.78 + rng() * 0.30;
             const rScale = 0.75 + rng() * 0.35;
@@ -147,11 +166,15 @@ export class CapsuleInterferenceGenerator extends Generator {
 
                 const r = Math.max(1, Math.min(cornerRadius * rScale - inset * 0.35, Math.min(w, h) / 2));
                 const drift = (c - contourCount / 2) * contourDrift;
-                paths.push(roundedRectPath(localCx + drift, localCy - drift * 0.35, w, h, r, angleDeg * Math.PI / 180));
+                paths.push({
+                    path: roundedRectPath(localCx + drift, localCy - drift * 0.35, w, h, r, angleDeg * Math.PI / 180),
+                    shapeIndex: s,
+                    contourIndex: c,
+                });
             }
         }
 
-        const bounds = pathBounds(paths);
+        const bounds = pathBounds(paths.map((record) => record.path));
         if (bounds) {
             const margin = Math.min(width, height) * 0.08;
             const drawnW = bounds.maxX - bounds.minX;
@@ -160,8 +183,12 @@ export class CapsuleInterferenceGenerator extends Generator {
             const dx = width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
             const dy = height / 2 - ((bounds.minY + bounds.maxY) / 2) * scale;
 
-            for (const path of paths) {
-                canvas.addPath(1, `<path d='${transformPath(path, scale, dx, dy)}' />`);
+            for (const record of paths) {
+                const d = transformPath(record.path, scale, dx, dy);
+                for (const layerIndex of layersFor(record, colorMode, colorLayers, contourCount)) {
+                    const offset = stackedOffset(layerIndex, colorMode, colorLayers, registrationOffset, seed);
+                    canvas.addPath(layerIndex, `<path d='${offsetPath(d, offset.x, offset.y)}' />`);
+                }
             }
         }
 
@@ -198,6 +225,40 @@ function transformPath(path, scale, dx, dy) {
     });
 }
 
+function layersFor(record, colorMode, colorLayers, contourCount) {
+    if (colorMode === 'Single pen') return [0];
+    if (colorMode === 'By stack') return [record.shapeIndex % colorLayers];
+    if (colorMode === 'Contour bands') {
+        const band = Math.floor(record.contourIndex / Math.max(1, contourCount) * colorLayers);
+        return [Math.min(colorLayers - 1, band)];
+    }
+    if (colorMode === 'Stacked passes') {
+        return Array.from({ length: colorLayers }, (_unused, i) => i);
+    }
+    return [0];
+}
+
+function stackedOffset(layerIndex, colorMode, colorLayers, registrationOffset, seed) {
+    if (colorMode !== 'Stacked passes' || colorLayers <= 1 || registrationOffset <= 0) {
+        return { x: 0, y: 0 };
+    }
+    const centered = layerIndex - (colorLayers - 1) / 2;
+    const angle = (34 + (seed % 37)) * Math.PI / 180;
+    return {
+        x: Math.cos(angle) * centered * registrationOffset,
+        y: Math.sin(angle) * centered * registrationOffset,
+    };
+}
+
+function offsetPath(path, ox, oy) {
+    if (ox === 0 && oy === 0) return path;
+    return path.replace(/([ML])\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g, (_match, command, xStr, yStr) => {
+        const x = Number(xStr) + ox;
+        const y = Number(yStr) + oy;
+        return `${command} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    });
+}
+
 function roundedRectPath(cx, cy, w, h, r, angle) {
     const pts = [];
     const hw = w / 2;
@@ -229,6 +290,10 @@ function addPoint(pts, x, y, cx, cy, angle) {
     const rx = x * Math.cos(angle) - y * Math.sin(angle) + cx;
     const ry = x * Math.sin(angle) + y * Math.cos(angle) + cy;
     pts.push([rx, ry]);
+}
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
 }
 
 function numberParam(params, name, fallback) {
