@@ -1,6 +1,7 @@
 const CACHE_NAME = 'genart-pwa-v1';
 const APP_SHELL = [
   '/genart/',
+  '/genart/mobile.html',
   '/genart/manifest.webmanifest',
   '/genart/icons/icon-192.png',
   '/genart/icons/icon-512.png',
