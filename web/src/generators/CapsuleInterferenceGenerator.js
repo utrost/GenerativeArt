@@ -14,15 +14,15 @@ export class CapsuleInterferenceGenerator extends Generator {
     getParameterDefinitions() {
         return [
             ParameterDefinition.selection('Preset', '1+1=3 Study', ['1+1=3 Study', 'Quiet Offset', 'Dense Knot', 'Loose Stack', 'Custom'], 'Named starting points inspired by overlapped plotter contour studies'),
-            ParameterDefinition.integer('shapeCount', 4, 2, 8, 'Number of overlapping rounded-rectangle contour stacks'),
-            ParameterDefinition.integer('contourCount', 18, 4, 48, 'Number of parallel offset contours per stack'),
-            ParameterDefinition.doubleVal('spacing', 5.0, 1.0, 14.0, 'Distance between neighboring contours in SVG units'),
-            ParameterDefinition.doubleVal('baseWidth', 320.0, 80.0, 700.0, 'Outer width of the largest capsule'),
-            ParameterDefinition.doubleVal('baseHeight', 150.0, 40.0, 420.0, 'Outer height of the largest capsule'),
-            ParameterDefinition.doubleVal('cornerRadius', 52.0, 5.0, 220.0, 'Rounded corner radius before inset clamping'),
-            ParameterDefinition.doubleVal('rotationSpread', 128.0, 0.0, 180.0, 'Total angular spread across all stacks'),
-            ParameterDefinition.doubleVal('jitter', 22.0, 0.0, 90.0, 'Seeded translation and rotation looseness'),
-            ParameterDefinition.doubleVal('strokeWidth', 0.9, 0.1, 5.0, 'Preview stroke width; physical line width comes from the pen'),
+            ParameterDefinition.integer('shapeCount', 5, 2, 8, 'Number of overlapping rounded-rectangle contour stacks'),
+            ParameterDefinition.integer('contourCount', 16, 4, 48, 'Number of parallel offset contours per stack'),
+            ParameterDefinition.doubleVal('spacing', 6.0, 1.0, 14.0, 'Distance between neighboring contours in SVG units'),
+            ParameterDefinition.doubleVal('baseWidth', 560.0, 80.0, 900.0, 'Outer width of the largest capsule'),
+            ParameterDefinition.doubleVal('baseHeight', 155.0, 40.0, 420.0, 'Outer height of the largest capsule'),
+            ParameterDefinition.doubleVal('cornerRadius', 46.0, 5.0, 220.0, 'Rounded corner radius before inset clamping'),
+            ParameterDefinition.doubleVal('rotationSpread', 118.0, 0.0, 180.0, 'Total angular spread across all stacks'),
+            ParameterDefinition.doubleVal('jitter', 70.0, 0.0, 180.0, 'Seeded translation and rotation looseness'),
+            ParameterDefinition.doubleVal('strokeWidth', 0.75, 0.1, 5.0, 'Preview stroke width; physical line width comes from the pen'),
             ParameterDefinition.integer('seed', 303, 1, 99999, 'Deterministic random seed'),
         ];
     }
@@ -32,15 +32,15 @@ export class CapsuleInterferenceGenerator extends Generator {
             switch (newValue) {
                 case '1+1=3 Study':
                     Object.assign(currentValues, {
-                        shapeCount: 4,
-                        contourCount: 18,
-                        spacing: 5.0,
-                        baseWidth: 320.0,
-                        baseHeight: 150.0,
-                        cornerRadius: 52.0,
-                        rotationSpread: 128.0,
-                        jitter: 22.0,
-                        strokeWidth: 0.9,
+                        shapeCount: 5,
+                        contourCount: 16,
+                        spacing: 6.0,
+                        baseWidth: 560.0,
+                        baseHeight: 155.0,
+                        cornerRadius: 46.0,
+                        rotationSpread: 118.0,
+                        jitter: 70.0,
+                        strokeWidth: 0.75,
                         seed: 303,
                     });
                     return true;
@@ -49,11 +49,11 @@ export class CapsuleInterferenceGenerator extends Generator {
                         shapeCount: 3,
                         contourCount: 14,
                         spacing: 6.0,
-                        baseWidth: 340.0,
+                        baseWidth: 520.0,
                         baseHeight: 130.0,
                         cornerRadius: 46.0,
                         rotationSpread: 82.0,
-                        jitter: 12.0,
+                        jitter: 38.0,
                         strokeWidth: 0.8,
                         seed: 91,
                     });
@@ -61,13 +61,13 @@ export class CapsuleInterferenceGenerator extends Generator {
                 case 'Dense Knot':
                     Object.assign(currentValues, {
                         shapeCount: 5,
-                        contourCount: 26,
-                        spacing: 3.7,
-                        baseWidth: 350.0,
+                        contourCount: 24,
+                        spacing: 4.2,
+                        baseWidth: 620.0,
                         baseHeight: 165.0,
                         cornerRadius: 60.0,
                         rotationSpread: 156.0,
-                        jitter: 28.0,
+                        jitter: 78.0,
                         strokeWidth: 0.7,
                         seed: 611,
                     });
@@ -77,11 +77,11 @@ export class CapsuleInterferenceGenerator extends Generator {
                         shapeCount: 4,
                         contourCount: 12,
                         spacing: 8.0,
-                        baseWidth: 380.0,
+                        baseWidth: 680.0,
                         baseHeight: 185.0,
                         cornerRadius: 72.0,
                         rotationSpread: 148.0,
-                        jitter: 44.0,
+                        jitter: 105.0,
                         strokeWidth: 1.0,
                         seed: 44,
                     });
@@ -114,21 +114,30 @@ export class CapsuleInterferenceGenerator extends Generator {
 
         const canvas = new SvgCanvas(width, height, 2);
         canvas.setStrokeWidth(strokeWidth);
+        const paths = [];
 
         const rng = mulberry32(seed);
         const cx = width / 2;
         const cy = height / 2;
         const startAngle = -rotationSpread / 2;
         const angleStep = shapeCount <= 1 ? 0 : rotationSpread / (shapeCount - 1);
+        const compositionAngle = (-10 + (rng() - 0.5) * 18) * Math.PI / 180;
+        const spanX = Math.min(width * 0.62, baseWidth * 0.78 + jitter * 1.8);
+        const spanY = Math.min(height * 0.28, baseHeight * 0.45 + jitter * 0.85);
 
         for (let s = 0; s < shapeCount; s++) {
             const normalized = shapeCount <= 1 ? 0.5 : s / (shapeCount - 1);
-            const angleDeg = startAngle + angleStep * s + (rng() - 0.5) * jitter * 0.55;
-            const localCx = cx + Math.cos(normalized * Math.PI * 2 + 0.6) * jitter * 0.55 + (rng() - 0.5) * jitter;
-            const localCy = cy + Math.sin(normalized * Math.PI * 2 + 0.6) * jitter * 0.35 + (rng() - 0.5) * jitter;
-            const wScale = 0.92 + rng() * 0.16;
-            const hScale = 0.90 + rng() * 0.20;
-            const rScale = 0.85 + rng() * 0.30;
+            const centered = normalized - 0.5;
+            const wave = Math.sin(normalized * Math.PI * 2 + seed * 0.01);
+            const along = centered * spanX + (rng() - 0.5) * jitter * 0.75;
+            const across = wave * spanY * 0.5 + (rng() - 0.5) * jitter * 0.95;
+            const localCx = cx + along * Math.cos(compositionAngle) - across * Math.sin(compositionAngle);
+            const localCy = cy + along * Math.sin(compositionAngle) + across * Math.cos(compositionAngle);
+            const angleDeg = startAngle + angleStep * s + (rng() - 0.5) * jitter * 0.38;
+            const wScale = 0.86 + rng() * 0.30;
+            const hScale = 0.78 + rng() * 0.30;
+            const rScale = 0.75 + rng() * 0.35;
+            const contourDrift = (rng() - 0.5) * jitter * 0.05;
 
             for (let c = 0; c < contourCount; c++) {
                 const inset = c * spacing;
@@ -137,13 +146,56 @@ export class CapsuleInterferenceGenerator extends Generator {
                 if (w <= spacing * 3 || h <= spacing * 3) break;
 
                 const r = Math.max(1, Math.min(cornerRadius * rScale - inset * 0.35, Math.min(w, h) / 2));
-                const path = roundedRectPath(localCx, localCy, w, h, r, angleDeg * Math.PI / 180);
-                canvas.addPath(1, `<path d='${path}' />`);
+                const drift = (c - contourCount / 2) * contourDrift;
+                paths.push(roundedRectPath(localCx + drift, localCy - drift * 0.35, w, h, r, angleDeg * Math.PI / 180));
+            }
+        }
+
+        const bounds = pathBounds(paths);
+        if (bounds) {
+            const margin = Math.min(width, height) * 0.08;
+            const drawnW = bounds.maxX - bounds.minX;
+            const drawnH = bounds.maxY - bounds.minY;
+            const scale = Math.min((width - margin * 2) / drawnW, (height - margin * 2) / drawnH);
+            const dx = width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
+            const dy = height / 2 - ((bounds.minY + bounds.maxY) / 2) * scale;
+
+            for (const path of paths) {
+                canvas.addPath(1, `<path d='${transformPath(path, scale, dx, dy)}' />`);
             }
         }
 
         return canvas.toSvg();
     }
+}
+
+function pathBounds(paths) {
+    if (paths.length === 0) return null;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    for (const path of paths) {
+        for (const [, _command, xStr, yStr] of path.matchAll(/([ML])\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)) {
+            const x = Number(xStr);
+            const y = Number(yStr);
+            minX = Math.min(minX, x);
+            maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y);
+            maxY = Math.max(maxY, y);
+        }
+    }
+
+    return Number.isFinite(minX) ? { minX, maxX, minY, maxY } : null;
+}
+
+function transformPath(path, scale, dx, dy) {
+    return path.replace(/([ML])\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g, (_match, command, xStr, yStr) => {
+        const x = Number(xStr) * scale + dx;
+        const y = Number(yStr) * scale + dy;
+        return `${command} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    });
 }
 
 function roundedRectPath(cx, cy, w, h, r, angle) {
