@@ -27,6 +27,54 @@ body {
     overflow: hidden;
 }
 
+.mobile-redirect-banner {
+    position: fixed;
+    top: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: calc(100vw - 1.5rem);
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.94);
+    box-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.8);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.mobile-redirect-banner[hidden] {
+    display: none;
+}
+
+.mobile-redirect-banner a,
+.mobile-redirect-banner button {
+    white-space: nowrap;
+}
+
+.mobile-redirect-banner a {
+    color: var(--accent-color);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.mobile-redirect-banner button {
+    min-height: 32px;
+    padding: 0.35rem 0.6rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+@media (min-width: 721px) {
+    .mobile-redirect-banner {
+        display: none;
+    }
+}
+
 #app {
     display: grid;
     grid-template-columns: 250px 1fr 300px;

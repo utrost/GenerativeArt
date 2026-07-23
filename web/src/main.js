@@ -76,6 +76,7 @@ downloadBtn.parentElement.insertBefore(helpBtn, downloadBtn);
 
 
 function init() {
+  setupMobileRedirectPrompt();
   renderSidebar();
   renderGlobalSettings();
   selectGenerator(generators[0]);
@@ -88,6 +89,27 @@ function init() {
   window.addEventListener('resize', debounce(() => {
     generateArt();
   }, 500));
+}
+
+function setupMobileRedirectPrompt() {
+  const banner = document.getElementById('mobile-redirect-banner');
+  const stayDesktop = document.getElementById('btn-stay-desktop');
+  const mobileQuery = window.matchMedia('(max-width: 720px)');
+  const desktopPreferred = window.sessionStorage.getItem('genart:stayDesktop') === 'true';
+
+  if (!banner || !stayDesktop || !mobileQuery.matches || desktopPreferred) return;
+
+  const targetUrl = new URL('mobile.html', window.location.href);
+  if (window.location.search.includes('mobile=1')) {
+    window.location.href = targetUrl.href;
+    return;
+  }
+
+  banner.hidden = false;
+  stayDesktop.addEventListener('click', () => {
+    window.sessionStorage.setItem('genart:stayDesktop', 'true');
+    banner.hidden = true;
+  });
 }
 
 function showHelp() {
