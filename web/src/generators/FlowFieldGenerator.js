@@ -67,7 +67,7 @@ export class FlowFieldGenerator extends Generator {
     generate(params) {
         // Parameters
         const numParticles = params["Particles"] || 2000;
-        const noiseScale = params["Noise Scale"] || 0.002; // Java default 0.002 vs definition 0.005? Java code had inconsistencies, sticking to params.
+        const noiseScale = params["Noise Scale"] || 0.002;
         const stepLen = params["Step Length"] || 5;
         const maxSteps = params["Max Steps"] || 50;
         const seed = params["Seed"] || 42;
@@ -83,7 +83,7 @@ export class FlowFieldGenerator extends Generator {
         // simplex-noise 4.x: createNoise2D(randomFunc)
         const noise2D = createNoise2D(() => prng.nextDouble());
 
-        // Java: rand for particles
+        // Separate deterministic stream for particle positions.
         const rand = new SeededRandom(seed);
 
         for (let i = 0; i < numParticles; i++) {
@@ -95,8 +95,7 @@ export class FlowFieldGenerator extends Generator {
             let pathData = `M ${x.toFixed(1)} ${y.toFixed(1)}`;
 
             for (let s = 0; s < maxSteps; s++) {
-                // Java version: noise returns 0..1
-                // Simplex returns -1..1. Normalize it.
+                // Simplex returns -1..1. Normalize it to 0..1 for angle mapping.
                 const rawNoise = noise2D(x * noiseScale, y * noiseScale); // -1 to 1
                 const normalizedNoise = (rawNoise + 1) / 2; // 0 to 1
                 const angle = normalizedNoise * Math.PI * 4;

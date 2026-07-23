@@ -62,7 +62,7 @@ export class PipeNetworkGenerator extends Generator {
         return false;
     }
 
-    // Tile definitions aligned with Java version:
+    // Tile definitions used by the Wave Function Collapse pipe grammar:
     // NO Empty tile, NO Caps, NO T-Junctions → forces dense connected network
     // Edges: [N, E, S, W] — 0=Empty, 1=Pipe
     initTiles() {
@@ -268,7 +268,7 @@ export class PipeNetworkGenerator extends Generator {
     // --- Rendering ---
 
     render(canvas, wave, rows, cols, pipeWidth, width, height) {
-        // Use square cells (like Java's fixed tileSize=60), centered in the canvas
+        // Use square cells, centered in the canvas.
         const tileSize = Math.min(width / cols, height / rows);
         const gridW = cols * tileSize;
         const gridH = rows * tileSize;
@@ -363,7 +363,7 @@ export class PipeNetworkGenerator extends Generator {
         const x2 = cx + r * Math.cos(endAngle);
         const y2 = cy + r * Math.sin(endAngle);
 
-        // SVG arc: always quarter-circle (90°), sweep=0 matches Java's rendering
+        // SVG arc: always quarter-circle (90°), sweep=0 gives the desired plotter path.
         const path = `<path d='M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r.toFixed(2)} ${r.toFixed(2)} 0 0 0 ${x2.toFixed(2)} ${y2.toFixed(2)}' fill='none' stroke-width='1.5' />`;
         canvas.addRaw(0, path);
     }

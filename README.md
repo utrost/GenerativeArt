@@ -2,44 +2,45 @@
 
 **Repository:** [https://github.com/utrost/GenerativeArt](https://github.com/utrost/GenerativeArt)
 
-**🌐 Live Demo:** [utrost.github.io/GenerativeArt](https://utrost.github.io/GenerativeArt/) · [simiono.com/genart](https://simiono.com/genart/)
+**Live Demo:** [utrost.github.io/GenerativeArt](https://utrost.github.io/GenerativeArt/) · [simiono.com/genart](https://simiono.com/genart/)
 
-A powerful, extensible framework for creating generative art, optimized for pen plotters (e.g., Axidraw). This project features two distinct interfaces:
-1.  **Java Desktop App**: A robust Swing GUI for native performance and direct SVG generation.
-2.  **Web Application**: A modern, interactive web interface built with Vite and vanilla JavaScript.
+A browser-based framework for creating generative SVG art, tuned for pen plotters such as iDraw/Axidraw-style machines. The project is now **web-only**: Vite, vanilla JavaScript, SVG preview, and one-click SVG export.
+
+The former Java/Swing application has been retired to keep the generator code in one place.
 
 ---
 
-## 🎨 Available Generators
+## Available Generators
 
-The framework currently includes **22 distinct generative algorithms**, all ported to both Java and Web versions:
+The framework currently includes **23 generative algorithms**:
 
-1.  **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
-2.  **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
-3.  **L-System Fractal**: Rule-based recursive fractals (e.g., Dragon Curve, Ferns).
-4.  **Reaction Diffusion**: Simulates biological pattern formation (Gray-Scott model).
-5.  **Harmonograph**: Simulates multi-pendulum mechanical drawings (Lissajous figures).
-6.  **Phyllotaxis**: Nature-inspired sunflower spirals using the Golden Angle.
-7.  **Strange Attractors**: Visualizes chaotic mathematical systems (Clifford Attractor).
-8.  **Circle Packing**: Fills space with non-overlapping, growing bubbles.
-9.  **Truchet Tiles**: Maze-like geometric tessellations.
+1. **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
+2. **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
+3. **L-System Fractal**: Rule-based recursive fractals, such as dragon curves and ferns.
+4. **Reaction Diffusion**: Biological pattern formation using a Gray-Scott model.
+5. **Harmonograph**: Multi-pendulum mechanical drawing curves.
+6. **Phyllotaxis**: Sunflower-like spirals using the golden angle.
+7. **Strange Attractors**: Chaotic mathematical systems such as Clifford attractors.
+8. **Circle Packing**: Space-filling non-overlapping circles.
+9. **Truchet Tiles**: Maze-like geometric tessellations.
 10. **Twisted Moiré**: Interference patterns from overlapping distorted grids.
-11. **Voronoi Ripples**: Concentric clipping patterns within Voronoi cells.
-12. **Pipe Network**: Industrial pipe systems generated via Wave Function Collapse (WFC).
+11. **Voronoi Ripples**: Concentric clipping patterns inside Voronoi cells.
+12. **Pipe Network**: Industrial pipe systems generated via Wave Function Collapse.
 13. **Parametric Grid**: Ordered grids that decay into chaos.
 14. **Magnetic Field**: Particle trajectories influenced by magnetic poles.
-15. **Fourier Series**: Visualization of wave summation principles.
+15. **Fourier Series**: Visualizations of wave summation.
 16. **Maze Generator**: Perfect solvable mazes using recursive backtracking.
-17. **Spirograph**: Epicycloid and Hypocycloid curves.
-18. **Penrose Tiling**: Aperiodic tilings with five-fold symmetry (kites and darts).
+17. **Spirograph**: Epicycloid and hypocycloid curves.
+18. **Penrose Tiling**: Aperiodic kite-and-dart tilings with five-fold symmetry.
 19. **Wave Interference**: Overlapping circular wave patterns from multiple sources.
-20. **Chladni Patterns**: Resonance patterns on vibrating plates (nodal lines).
+20. **Chladni Patterns**: Resonance patterns on vibrating plates.
 21. **Celtic Knot**: Interlaced knotwork patterns inspired by Celtic art traditions.
 22. **Contour Map**: Topographic contour lines from procedural noise landscapes.
+23. **Capsule Interference**: Overlapping rounded-rectangle contour stacks for plotter studies.
 
 ---
 
-## 📸 Gallery
+## Gallery
 
 <table>
   <tr>
@@ -52,133 +53,88 @@ The framework currently includes **22 distinct generative algorithms**, all port
   </tr>
   <tr>
     <td align="center"><img src="images/pipe-network.webp" alt="Pipe Network" width="380"><br><b>Pipe Network</b><br>Industrial pipes via Wave Function Collapse</td>
-    <td align="center"><em>+ 17 more generators in the <a href="https://utrost.github.io/GenerativeArt/">Live Demo</a></em></td>
+    <td align="center"><em>+ more generators in the <a href="https://utrost.github.io/GenerativeArt/">Live Demo</a></em></td>
   </tr>
 </table>
 
 ---
 
-## ☕ Java Application (Desktop)
+## Web Application
 
-The original Java application provides a robust environment for generating high-resolution SVGs.
+### Prerequisites
 
-### Prerequisites (Java)
-*   **Java Development Kit (JDK) 17** or higher.
-    *   *Verify:* `java -version`
-*   **Maven 3.6+** (for building dependencies).
-    *   *Verify:* `mvn -version`
+- **Node.js** v18 or newer recommended.
+- **npm**.
 
-### Installation & Running (Java)
-
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/utrost/GenerativeArt.git
-    cd GenerativeArt
-    ```
-
-2.  **Build the Project**
-    We provide convenience scripts to handle compilation and dependencies for both Java and Web.
-    *   **macOS / Linux**: `./build.sh`
-    *   **Windows**: `build.bat`
-
-    *Alternatively, you can build manually with Maven:*
-    ```bash
-    mvn clean compile
-    ```
-
-3.  **Run the Java App**
-    *   **macOS / Linux**: `./start_swing.sh`
-    *   **Windows**: `start_swing.bat`
-
-### Java Features
-*   **Swing GUI**: Clean, dark-mode interface using **FlatLaf**.
-*   **Multi-Threading**: Background generation prevents UI freezing.
-*   **Extensible**: Easily add new generators by implementing the `ArtGenerator` interface.
-
----
-
-## 🌐 Web Application
-
-The web version creates a modern, responsive experience accessible directly in the browser.
-
-### Prerequisites (Web)
-*   **Node.js** (v18 or higher recommended).
-    *   *Verify:* `node -v`
-*   **npm** (comes with Node.js).
-
-### Installation & Running (Web)
-
-1.  **Navigate to the Web Directory**
-    ```bash
-    cd web
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
-
-3.  **Start Development Server**
-    We provide a convenience script to start the web interface:
-    *   **macOS / Linux**: `./start_web.sh`
-    *   **Windows**: `start_web.bat`
-
-    *Alternatively, you can run it manually:*
-    ```bash
-    npm run dev
-    ```
-    *   This will start a local server (usually at `http://localhost:5173`).
-    *   Open your browser and navigate to the displayed URL.
-
-4.  **Build for Production** (Optional)
-    To create a static build for deployment (already handled by the root `build.sh`/`build.bat` scripts):
-    ```bash
-    npm run build
-    ```
-    The output will be in the `dist/` folder.
-
-### Web Features
-*   **Interactive UI**: Glassmorphism design with real-time feedback.
-*   **Instant Preview**: Fast rendering using standard SVG DOM.
-*   **Help System**: Integrated markdown manuals for each generator.
-*   **Download**: One-click SVG download for plotting.
-
----
-
-## 🧪 Testing
-
-Both Java and Web codebases include comprehensive test suites.
-
-### Java Tests (JUnit 5)
+### Installation
 
 ```bash
-mvn test
+git clone https://github.com/utrost/GenerativeArt.git
+cd GenerativeArt/web
+npm install
 ```
 
-Tests cover:
-*   **Core classes**: `SvgCanvas`, `ParameterDefinition`, `PaperSize`, `SimpleJson`, `GeneratorRegistry`, `PerlinNoise`
-*   **All 22 generators**: Parameterized tests validating IDs, display names, parameter definitions, numeric ranges, and SVG output
+### Run locally
 
-### Web Tests (Vitest)
+From the repository root:
+
+```bash
+./start_web.sh
+```
+
+Or manually:
 
 ```bash
 cd web
-npm install
+npm run dev
+```
+
+Vite will print the local URL, usually `http://localhost:5173`.
+
+### Build for production
+
+From the repository root:
+
+```bash
+./build.sh
+```
+
+Or manually:
+
+```bash
+cd web
+npm run build
+```
+
+The static output is written to `web/dist/`.
+
+---
+
+## Testing
+
+```bash
+cd web
 npm test
 ```
 
 Tests cover:
-*   **Core classes**: `SvgCanvas`, `ParameterDefinition`, `PaperSize`, `SeededRandom`
-*   **All 22 generators**: Validation of IDs, display names, parameter definitions, numeric ranges, and SVG output
+
+- Core SVG utilities.
+- Paper-size handling.
+- Parameter definitions.
+- Seeded randomness.
+- All generator IDs, display names, parameter definitions, numeric ranges, and SVG output.
 
 ---
 
-## 🛠 Plotter Optimization
+## Plotter Notes
 
-Both versions of the application are designed with pen plotters in mind:
-*   **Layering**: Most generators support a `Colors` parameter. This splits the output into separate SVG layers (`layer_1`, `layer_2`, etc.), allowing you to pause the plotter and swap pens for multi-color prints.
-*   **Clean Paths**: Algorithms are tuned to minimize unnecessary pen-up/pen-down movements.
-*   **Paper Sizes**: Native support for A4, A3, and Letter sizes ensures your design fits your physical media. Default is A4 Landscape.
+The application is designed around SVG output for pen plotters:
+
+- **Layering:** generators can emit separate SVG groups such as `layer_1`, `layer_2`, etc. for pen changes.
+- **Clean paths:** output favors simple SVG lines and paths rather than raster effects.
+- **Paper sizes:** A4, A3, and Letter sizes are available in portrait and landscape.
+- **Export:** use the web UI download button to save an SVG for plotting or post-processing with tools such as `vpype`.
 
 ---
 

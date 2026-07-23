@@ -2,41 +2,48 @@
 
 ## Development Setup
 
-### Java
-1. Ensure Java 17+ and Maven 3.6+ are installed
-2. Build: `mvn clean package`
-3. Run: `java -jar target/generativeart-*.jar`
+```bash
+cd web
+npm install
+npm run dev
+```
 
-### Web
-1. `cd web && npm install`
-2. `npm run dev`
+The project is web-only. Generators live in `web/src/generators/` and produce SVG for preview/download.
 
 ## Adding a New Generator
 
-1. **Java:** Create `src/main/java/.../YourGenerator.java` extending the generator base
-2. **Web:** Create `web/src/generators/your-generator.js`
-3. Write a `Readme_YourGenerator.md` documenting the algorithm
-4. Register in both Java and Web entry points
+1. Create `web/src/generators/YourGenerator.js`.
+2. Implement the generator interface used by the existing files:
+   - `getId()`
+   - `getDisplayName()`
+   - `getParameterDefinitions()`
+   - `generate(params)`
+   - optional `onParameterChanged(...)` for presets or linked controls
+3. Add help text in `web/src/docs/Readme_YourGenerator.md`.
+4. Register the generator in `web/src/main.js`.
+5. Add it to `web/src/generators/allGenerators.test.js`.
 
 ## Running Tests
 
-### Java
 ```bash
-mvn test
+cd web
+npm test
 ```
 
-### Web
-```bash
-cd web && npm test
-```
+Before submitting changes, also run:
 
-Please ensure all tests pass before submitting a pull request. When adding a new generator, add it to the parameterized test lists in both `AllGeneratorsTest.java` and `web/src/generators/allGenerators.test.js`.
+```bash
+cd web
+npm run build
+```
 
 ## Code Style
 
-- Java: standard conventions, 4-space indent
-- Web: vanilla JS, ES modules, no frameworks
+- Vanilla JavaScript using ES modules.
+- Keep generators deterministic where possible; expose a `seed` parameter for random-looking work.
+- Prefer SVG paths/lines suitable for pen plotting over raster effects.
+- Keep parameter names stable once used by presets or shared examples.
 
 ## Commit Messages
 
-Use conventional prefixes: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+Use conventional prefixes: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.

@@ -10,7 +10,7 @@ export class SvgCanvas {
         for (let i = 0; i < numLayers; i++) {
             this.layers.push([]);
         }
-        // Standard plotter colors matching Java version
+        // Standard plotter colors used for SVG layer previews.
         this.layerColors = ["black", "#E31A1C", "#1F78B4", "#33A02C", "#FF7F00", "#6A3D9A"];
         this.strokeWidth = 1.0;
     }

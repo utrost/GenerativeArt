@@ -22,6 +22,7 @@ import { WaveInterferenceGenerator } from './WaveInterferenceGenerator.js';
 import { ChladniPatternGenerator } from './ChladniPatternGenerator.js';
 import { CelticKnotGenerator } from './CelticKnotGenerator.js';
 import { ContourMapGenerator } from './ContourMapGenerator.js';
+import { CapsuleInterferenceGenerator } from './CapsuleInterferenceGenerator.js';
 
 const allGenerators = [
     new GenerativeRibbon(),
@@ -46,6 +47,7 @@ const allGenerators = [
     new ChladniPatternGenerator(),
     new CelticKnotGenerator(),
     new ContourMapGenerator(),
+    new CapsuleInterferenceGenerator(),
 ];
 
 function buildDefaultParams(generator) {

@@ -20,6 +20,7 @@ import { WaveInterferenceGenerator } from './generators/WaveInterferenceGenerato
 import { ChladniPatternGenerator } from './generators/ChladniPatternGenerator';
 import { CelticKnotGenerator } from './generators/CelticKnotGenerator';
 import { ContourMapGenerator } from './generators/ContourMapGenerator';
+import { CapsuleInterferenceGenerator } from './generators/CapsuleInterferenceGenerator';
 
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
@@ -49,7 +50,8 @@ const generators = [
   new WaveInterferenceGenerator(),
   new ChladniPatternGenerator(),
   new CelticKnotGenerator(),
-  new ContourMapGenerator()
+  new ContourMapGenerator(),
+  new CapsuleInterferenceGenerator()
 ];
 
 let activeGenerator = generators[0];

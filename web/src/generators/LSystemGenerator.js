@@ -125,12 +125,8 @@ export class LSystemGenerator extends Generator {
         let minX = 0, maxX = 0;
         let minY = 0, maxY = 0;
 
-        // In Java implementation, 0 angle was implied right?
-        // Java: x + cos(rad) * len.
-
-        // Using basic path building manually instead of SvgCanvas because LSystem returns a single path usually
-        // But to be consistent let's follow the standard return type.
-        // The Java code returns a full Svg string directly, skipping SvgCanvas.
+        // Build the L-system path manually because this generator emits one continuous path
+        // with move commands for branch stack jumps.
 
         let pathData = `M ${x.toFixed(1)} ${y.toFixed(1)}`;
         const stack = [];

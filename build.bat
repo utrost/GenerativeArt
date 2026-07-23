@@ -1,20 +1,14 @@
 @echo off
-echo Building Java App...
-call mvn clean compile
-if %ERRORLEVEL% NEQ 0 (
-    echo Java Compilation Failed
-    exit /b %ERRORLEVEL%
-)
-
 echo Building Web App...
 cd web
 call npm install
-call npm run build
 if %ERRORLEVEL% NEQ 0 (
-    echo Web Build Failed
-    cd ..
+    echo Web dependency install failed
     exit /b %ERRORLEVEL%
 )
-
-cd ..
+call npm run build
+if %ERRORLEVEL% NEQ 0 (
+    echo Web build failed
+    exit /b %ERRORLEVEL%
+)
 echo Build successful!
