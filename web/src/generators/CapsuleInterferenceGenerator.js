@@ -14,7 +14,10 @@ export class CapsuleInterferenceGenerator extends Generator {
     getParameterDefinitions() {
         return [
             ParameterDefinition.selection('Preset', '1+1=3 Study', ['1+1=3 Study', 'Quiet Offset', 'Dense Knot', 'Loose Stack', 'Custom'], 'Named starting points inspired by overlapped plotter contour studies'),
-            ParameterDefinition.selection('constructionMode', 'Point field', ['Point field', 'Capsule stacks'], 'Point field flows around distributed sites; capsule stacks keeps the earlier rounded-rectangle study'),
+            ParameterDefinition.selection('constructionMode', 'Circle route', ['Circle route', 'Point field', 'Capsule stacks'], 'Circle route keeps parallel lines flowing around distributed circles'),
+            ParameterDefinition.integer('circleCount', 4, 2, 12, 'Number of randomized circles the parallel lines route around'),
+            ParameterDefinition.doubleVal('circleDiameter', 86.0, 20.0, 220.0, 'Diameter of the invisible guide circles'),
+            ParameterDefinition.selection('routeSide', 'Alternate', ['Left', 'Right', 'Alternate'], 'Which side the line bundle takes around each circle'),
             ParameterDefinition.integer('pointCount', 9, 2, 28, 'Number of distributed flow points per color layer'),
             ParameterDefinition.integer('fieldContours', 13, 4, 28, 'Number of field contour lines per color layer'),
             ParameterDefinition.integer('fieldResolution', 58, 28, 90, 'Sampling grid resolution for field contours'),
@@ -44,7 +47,10 @@ export class CapsuleInterferenceGenerator extends Generator {
             switch (newValue) {
                 case '1+1=3 Study':
                     Object.assign(currentValues, {
-                        constructionMode: 'Point field',
+                        constructionMode: 'Circle route',
+                        circleCount: 4,
+                        circleDiameter: 86.0,
+                        routeSide: 'Alternate',
                         pointCount: 9,
                         fieldContours: 13,
                         fieldResolution: 58,
@@ -70,7 +76,10 @@ export class CapsuleInterferenceGenerator extends Generator {
                     return true;
                 case 'Quiet Offset':
                     Object.assign(currentValues, {
-                        constructionMode: 'Point field',
+                        constructionMode: 'Circle route',
+                        circleCount: 3,
+                        circleDiameter: 92.0,
+                        routeSide: 'Left',
                         pointCount: 6,
                         fieldContours: 10,
                         fieldResolution: 52,
@@ -96,7 +105,10 @@ export class CapsuleInterferenceGenerator extends Generator {
                     return true;
                 case 'Dense Knot':
                     Object.assign(currentValues, {
-                        constructionMode: 'Point field',
+                        constructionMode: 'Circle route',
+                        circleCount: 6,
+                        circleDiameter: 64.0,
+                        routeSide: 'Alternate',
                         pointCount: 14,
                         fieldContours: 18,
                         fieldResolution: 68,
@@ -122,7 +134,10 @@ export class CapsuleInterferenceGenerator extends Generator {
                     return true;
                 case 'Loose Stack':
                     Object.assign(currentValues, {
-                        constructionMode: 'Point field',
+                        constructionMode: 'Circle route',
+                        circleCount: 5,
+                        circleDiameter: 112.0,
+                        routeSide: 'Right',
                         pointCount: 11,
                         fieldContours: 11,
                         fieldResolution: 58,
@@ -161,7 +176,10 @@ export class CapsuleInterferenceGenerator extends Generator {
     generate(params) {
         const width = numberParam(params, 'width', 800);
         const height = numberParam(params, 'height', 600);
-        const constructionMode = typeof params.constructionMode === 'string' ? params.constructionMode : 'Point field';
+        const constructionMode = typeof params.constructionMode === 'string' ? params.constructionMode : 'Circle route';
+        const circleCount = clamp(Math.floor(numberParam(params, 'circleCount', 4)), 2, 12);
+        const circleDiameter = numberParam(params, 'circleDiameter', 86.0);
+        const routeSide = typeof params.routeSide === 'string' ? params.routeSide : 'Alternate';
         const pointCount = clamp(Math.floor(numberParam(params, 'pointCount', 9)), 2, 28);
         const fieldContours = clamp(Math.floor(numberParam(params, 'fieldContours', 13)), 4, 28);
         const fieldResolution = clamp(Math.floor(numberParam(params, 'fieldResolution', 58)), 28, 90);
@@ -187,6 +205,10 @@ export class CapsuleInterferenceGenerator extends Generator {
         const canvas = new SvgCanvas(width, height, colorMode === 'Single pen' ? 1 : colorLayers);
         canvas.layerColors = ['#F05A4A', '#1FA2E1', '#8E63CE', '#F6A11A', '#33A02C', '#6A3D9A'];
         canvas.setStrokeWidth(strokeWidth);
+
+        if (constructionMode === 'Circle route') {
+            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, contourCount, spacing, routeSide, colorLayers, colorMode, seed);
+        }
 
         if (constructionMode === 'Point field') {
             return generatePointField(canvas, width, height, pointCount, fieldContours, fieldResolution, fieldSoftness, colorLayers, colorMode, seed);
@@ -263,6 +285,84 @@ export class CapsuleInterferenceGenerator extends Generator {
 
         return canvas.toSvg();
     }
+}
+
+function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, colorMode, seed) {
+    const activeLayers = colorMode === 'Single pen' ? 1 : colorLayers;
+    const margin = Math.min(width, height) * 0.18;
+    const records = [];
+
+    for (let layer = 0; layer < activeLayers; layer++) {
+        const rng = mulberry32(seed + 701 * (layer + 1));
+        const circles = distributedPoints(circleCount, width, height, Math.min(margin, Math.min(width, height) * 0.28), rng);
+        const layerSide = routeSide === 'Left' ? 1 : routeSide === 'Right' ? -1 : (layer % 2 === 0 ? 1 : -1);
+        const lineOffset = colorMode === 'Single pen' ? 0 : (layer - (activeLayers - 1) / 2) * spacing * 0.42;
+
+        for (let i = 0; i < lineCount; i++) {
+            const radius = circleDiameter / 2 + i * spacing + lineOffset;
+            if (radius < 4) continue;
+            const pts = routeAroundCircles(circles, radius, layerSide, i);
+            if (pts.length < 4) continue;
+            const d = pts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)}`).join(' ');
+            records.push({ layer, path: d });
+        }
+    }
+
+    const bounds = pathBounds(records.map((record) => record.path));
+    if (bounds) {
+        const safe = Math.min(width, height) * 0.07;
+        const drawnW = bounds.maxX - bounds.minX;
+        const drawnH = bounds.maxY - bounds.minY;
+        const scale = Math.min((width - safe * 2) / drawnW, (height - safe * 2) / drawnH);
+        const dx = width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
+        const dy = height / 2 - ((bounds.minY + bounds.maxY) / 2) * scale;
+        for (const record of records) {
+            canvas.addPath(record.layer, `<path d='${transformPath(record.path, scale, dx, dy)}' />`);
+        }
+    }
+
+    return canvas.toSvg();
+}
+
+function routeAroundCircles(circles, radius, side, lineIndex) {
+    const pts = [];
+    const n = circles.length;
+    const arcSteps = 9;
+    for (let i = 0; i < n; i++) {
+        const prev = circles[(i - 1 + n) % n];
+        const cur = circles[i];
+        const next = circles[(i + 1) % n];
+        const incoming = Math.atan2(cur.y - prev.y, cur.x - prev.x);
+        const outgoing = Math.atan2(next.y - cur.y, next.x - cur.x);
+        const localSide = lineIndex % 2 === 0 ? side : side;
+        const entry = incoming + localSide * Math.PI / 2;
+        const exit = outgoing + localSide * Math.PI / 2;
+        const arc = angleArc(entry, exit, localSide);
+        for (let step = 0; step <= arcSteps; step++) {
+            if (i > 0 && step === 0) continue;
+            const t = step / arcSteps;
+            const a = entry + arc * t;
+            pts.push({
+                x: cur.x + Math.cos(a) * radius,
+                y: cur.y + Math.sin(a) * radius,
+            });
+        }
+    }
+    pts.push({ ...pts[0] });
+    return pts;
+}
+
+function angleArc(from, to, side) {
+    let delta = normalizeAngle(to - from);
+    if (side > 0 && delta < 0) delta += Math.PI * 2;
+    if (side < 0 && delta > 0) delta -= Math.PI * 2;
+    return delta;
+}
+
+function normalizeAngle(angle) {
+    while (angle <= -Math.PI) angle += Math.PI * 2;
+    while (angle > Math.PI) angle -= Math.PI * 2;
+    return angle;
 }
 
 function generatePointField(canvas, width, height, pointCount, contourCount, resolution, softness, colorLayers, colorMode, seed) {
