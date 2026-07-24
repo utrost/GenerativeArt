@@ -28,6 +28,10 @@ export class MazeGenerator extends Generator {
             ParameterDefinition.integer("cols", 20, 5, 100, "Columns"),
             ParameterDefinition.doubleVal("cellSize", 20.0, 5.0, 100.0, "Cell Size"),
             ParameterDefinition.doubleVal("wallWidth", 2.0, 0.5, 10.0, "Wall Width"),
+            ParameterDefinition.selection("entrySide", "Top", ["Top", "Right", "Bottom", "Left"], "Side containing the single maze entry opening"),
+            ParameterDefinition.doubleVal("entryPosition", 0.0, 0.0, 100.0, "Entry position along its side, as percent from left/top"),
+            ParameterDefinition.selection("exitSide", "Bottom", ["Top", "Right", "Bottom", "Left"], "Side containing the single maze exit opening"),
+            ParameterDefinition.doubleVal("exitPosition", 100.0, 0.0, 100.0, "Exit position along its side, as percent from left/top"),
             ParameterDefinition.integer("seed", 1234, 0, 100000, "Random Seed"),
             ParameterDefinition.bool("solve", false, "Show Solution")
         ];
@@ -42,6 +46,10 @@ export class MazeGenerator extends Generator {
                     currentValues["cols"] = 20;
                     currentValues["cellSize"] = 20.0;
                     currentValues["wallWidth"] = 2.0;
+                    currentValues["entrySide"] = "Top";
+                    currentValues["entryPosition"] = 0.0;
+                    currentValues["exitSide"] = "Bottom";
+                    currentValues["exitPosition"] = 100.0;
                     currentValues["seed"] = 1234;
                     currentValues["solve"] = false;
                     return true;
@@ -50,6 +58,10 @@ export class MazeGenerator extends Generator {
                     currentValues["cols"] = 50;
                     currentValues["cellSize"] = 10.0;
                     currentValues["wallWidth"] = 1.0;
+                    currentValues["entrySide"] = "Left";
+                    currentValues["entryPosition"] = 0.0;
+                    currentValues["exitSide"] = "Right";
+                    currentValues["exitPosition"] = 100.0;
                     currentValues["seed"] = 9999;
                     currentValues["solve"] = false;
                     return true;
@@ -58,6 +70,10 @@ export class MazeGenerator extends Generator {
                     currentValues["cols"] = 10;
                     currentValues["cellSize"] = 50.0;
                     currentValues["wallWidth"] = 4.0;
+                    currentValues["entrySide"] = "Top";
+                    currentValues["entryPosition"] = 0.0;
+                    currentValues["exitSide"] = "Bottom";
+                    currentValues["exitPosition"] = 100.0;
                     currentValues["seed"] = 42;
                     currentValues["solve"] = false;
                     return true;
@@ -66,6 +82,10 @@ export class MazeGenerator extends Generator {
                     currentValues["cols"] = 30;
                     currentValues["cellSize"] = 15.0;
                     currentValues["wallWidth"] = 1.5;
+                    currentValues["entrySide"] = "Top";
+                    currentValues["entryPosition"] = 0.0;
+                    currentValues["exitSide"] = "Bottom";
+                    currentValues["exitPosition"] = 100.0;
                     currentValues["seed"] = 777;
                     currentValues["solve"] = true;
                     return true;
@@ -86,6 +106,10 @@ export class MazeGenerator extends Generator {
         const cols = params["cols"] || 20;
         const cellSize = params["cellSize"] || 20.0;
         const wallWidth = params["wallWidth"] || 2.0;
+        const entrySide = params["entrySide"] || "Top";
+        const entryPosition = params["entryPosition"] ?? 0.0;
+        const exitSide = params["exitSide"] || "Bottom";
+        const exitPosition = params["exitPosition"] ?? 100.0;
         const seed = params["seed"] || 1234;
         const solve = params["solve"] || false;
 
@@ -118,6 +142,11 @@ export class MazeGenerator extends Generator {
         const height = rows * cellSize;
         const canvas = new SvgCanvas(width, height, 2);
         canvas.setStrokeWidth(wallWidth);
+        const entry = this.boundaryOpening(entrySide, entryPosition, rows, cols);
+        let exit = this.boundaryOpening(exitSide, exitPosition, rows, cols);
+        if (this.sameOpening(entry, exit)) {
+            exit = this.boundaryOpening(this.oppositeSide(entry.side), 100 - entryPosition, rows, cols);
+        }
 
         // Draw Walls (Layer 0)
         for (let r = 0; r < rows; r++) {
@@ -126,30 +155,72 @@ export class MazeGenerator extends Generator {
                 const y = r * cellSize;
                 const cell = grid[r][c];
 
-                if (r === 0 && cell.walls[0])
+                if (r === 0 && cell.walls[0] && !this.isOpening(entry, r, c, 0) && !this.isOpening(exit, r, c, 0))
                     canvas.addLine(0, x, y, x + cellSize, y); // N
-                if (c === 0 && cell.walls[3])
+                if (c === 0 && cell.walls[3] && !this.isOpening(entry, r, c, 3) && !this.isOpening(exit, r, c, 3))
                     canvas.addLine(0, x, y, x, y + cellSize); // W
-                if (cell.walls[2])
+                if (cell.walls[2] && !this.isOpening(entry, r, c, 2) && !this.isOpening(exit, r, c, 2))
                     canvas.addLine(0, x, y + cellSize, x + cellSize, y + cellSize); // S
-                if (cell.walls[1])
+                if (cell.walls[1] && !this.isOpening(entry, r, c, 1) && !this.isOpening(exit, r, c, 1))
                     canvas.addLine(0, x + cellSize, y, x + cellSize, y + cellSize); // E
             }
         }
 
         // Solve if requested (Layer 1)
         if (solve) {
-            const path = this.solveMaze(grid, rows, cols);
+            const path = this.solveMaze(grid, rows, cols, entry.cell, exit.cell);
             if (path && path.length > 0) {
-                let pathData = `M ${path[0].c * cellSize + cellSize / 2} ${path[0].r * cellSize + cellSize / 2}`;
-                for (let i = 1; i < path.length; i++) {
+                const startPoint = this.outsideOpeningPoint(entry, cellSize);
+                const endPoint = this.outsideOpeningPoint(exit, cellSize);
+                let pathData = `M ${startPoint.x} ${startPoint.y}`;
+                for (let i = 0; i < path.length; i++) {
                     pathData += ` L ${path[i].c * cellSize + cellSize / 2} ${path[i].r * cellSize + cellSize / 2}`;
                 }
+                pathData += ` L ${endPoint.x} ${endPoint.y}`;
                 canvas.addRaw(1, `<path d="${pathData}" stroke="red" stroke-width="${cellSize * 0.3}" fill="none" stroke-linejoin="round" stroke-linecap="round" />`);
             }
         }
 
         return canvas.toSvg();
+    }
+
+    boundaryOpening(side, positionPercent, rows, cols) {
+        const normalizedSide = ["Top", "Right", "Bottom", "Left"].includes(side) ? side : "Top";
+        const pct = Math.min(100, Math.max(0, Number(positionPercent) || 0)) / 100;
+        if (normalizedSide === "Top") {
+            return { side: normalizedSide, wall: 0, cell: { r: 0, c: Math.round(pct * (cols - 1)) } };
+        }
+        if (normalizedSide === "Right") {
+            return { side: normalizedSide, wall: 1, cell: { r: Math.round(pct * (rows - 1)), c: cols - 1 } };
+        }
+        if (normalizedSide === "Bottom") {
+            return { side: normalizedSide, wall: 2, cell: { r: rows - 1, c: Math.round(pct * (cols - 1)) } };
+        }
+        return { side: normalizedSide, wall: 3, cell: { r: Math.round(pct * (rows - 1)), c: 0 } };
+    }
+
+    isOpening(opening, r, c, wall) {
+        return opening && opening.wall === wall && opening.cell.r === r && opening.cell.c === c;
+    }
+
+    sameOpening(a, b) {
+        return a && b && a.wall === b.wall && a.cell.r === b.cell.r && a.cell.c === b.cell.c;
+    }
+
+    oppositeSide(side) {
+        if (side === "Top") return "Bottom";
+        if (side === "Right") return "Left";
+        if (side === "Bottom") return "Top";
+        return "Right";
+    }
+
+    outsideOpeningPoint(opening, cellSize) {
+        const x = opening.cell.c * cellSize + cellSize / 2;
+        const y = opening.cell.r * cellSize + cellSize / 2;
+        if (opening.side === "Top") return { x, y: -cellSize / 2 };
+        if (opening.side === "Right") return { x: x + cellSize, y };
+        if (opening.side === "Bottom") return { x, y: y + cellSize };
+        return { x: -cellSize / 2, y };
     }
 
     getUnvisitedNeighbors(c, grid, rows, cols) {
@@ -180,18 +251,18 @@ export class MazeGenerator extends Generator {
         }
     }
 
-    solveMaze(grid, rows, cols) {
+    solveMaze(grid, rows, cols, startCell = { r: 0, c: 0 }, targetCell = { r: rows - 1, c: cols - 1 }) {
         // Reset visited for solver
         for (let r = 0; r < rows; r++)
             for (let c = 0; c < cols; c++)
                 grid[r][c].visited = false;
 
         const queue = [];
-        const startPath = [grid[0][0]];
+        const startPath = [grid[startCell.r][startCell.c]];
         queue.push(startPath);
-        grid[0][0].visited = true;
+        grid[startCell.r][startCell.c].visited = true;
 
-        const target = grid[rows - 1][cols - 1];
+        const target = grid[targetCell.r][targetCell.c];
 
         while (queue.length > 0) {
             const path = queue.shift(); // shift is standard JS array method for queue pop
