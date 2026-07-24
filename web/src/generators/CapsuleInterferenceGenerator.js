@@ -14,6 +14,11 @@ export class CapsuleInterferenceGenerator extends Generator {
     getParameterDefinitions() {
         return [
             ParameterDefinition.selection('Preset', '1+1=3 Study', ['1+1=3 Study', 'Quiet Offset', 'Dense Knot', 'Loose Stack', 'Custom'], 'Named starting points inspired by overlapped plotter contour studies'),
+            ParameterDefinition.selection('constructionMode', 'Point field', ['Point field', 'Capsule stacks'], 'Point field flows around distributed sites; capsule stacks keeps the earlier rounded-rectangle study'),
+            ParameterDefinition.integer('pointCount', 9, 2, 28, 'Number of distributed flow points per color layer'),
+            ParameterDefinition.integer('fieldContours', 13, 4, 28, 'Number of field contour lines per color layer'),
+            ParameterDefinition.integer('fieldResolution', 58, 28, 90, 'Sampling grid resolution for field contours'),
+            ParameterDefinition.doubleVal('fieldSoftness', 42.0, 12.0, 120.0, 'Point influence radius for flowing contour fields'),
             ParameterDefinition.integer('shapeCount', 6, 2, 10, 'Number of overlapping rounded-rectangle contour stacks'),
             ParameterDefinition.integer('contourCount', 16, 4, 48, 'Number of parallel offset contours per stack'),
             ParameterDefinition.doubleVal('spacing', 6.0, 1.0, 14.0, 'Distance between neighboring contours in SVG units'),
@@ -39,6 +44,11 @@ export class CapsuleInterferenceGenerator extends Generator {
             switch (newValue) {
                 case '1+1=3 Study':
                     Object.assign(currentValues, {
+                        constructionMode: 'Point field',
+                        pointCount: 9,
+                        fieldContours: 13,
+                        fieldResolution: 58,
+                        fieldSoftness: 42.0,
                         shapeCount: 6,
                         contourCount: 16,
                         spacing: 6.0,
@@ -60,6 +70,11 @@ export class CapsuleInterferenceGenerator extends Generator {
                     return true;
                 case 'Quiet Offset':
                     Object.assign(currentValues, {
+                        constructionMode: 'Point field',
+                        pointCount: 6,
+                        fieldContours: 10,
+                        fieldResolution: 52,
+                        fieldSoftness: 48.0,
                         shapeCount: 3,
                         contourCount: 14,
                         spacing: 6.0,
@@ -81,6 +96,11 @@ export class CapsuleInterferenceGenerator extends Generator {
                     return true;
                 case 'Dense Knot':
                     Object.assign(currentValues, {
+                        constructionMode: 'Point field',
+                        pointCount: 14,
+                        fieldContours: 18,
+                        fieldResolution: 68,
+                        fieldSoftness: 34.0,
                         shapeCount: 5,
                         contourCount: 24,
                         spacing: 4.2,
@@ -102,6 +122,11 @@ export class CapsuleInterferenceGenerator extends Generator {
                     return true;
                 case 'Loose Stack':
                     Object.assign(currentValues, {
+                        constructionMode: 'Point field',
+                        pointCount: 11,
+                        fieldContours: 11,
+                        fieldResolution: 58,
+                        fieldSoftness: 56.0,
                         shapeCount: 4,
                         contourCount: 12,
                         spacing: 8.0,
@@ -136,6 +161,11 @@ export class CapsuleInterferenceGenerator extends Generator {
     generate(params) {
         const width = numberParam(params, 'width', 800);
         const height = numberParam(params, 'height', 600);
+        const constructionMode = typeof params.constructionMode === 'string' ? params.constructionMode : 'Point field';
+        const pointCount = clamp(Math.floor(numberParam(params, 'pointCount', 9)), 2, 28);
+        const fieldContours = clamp(Math.floor(numberParam(params, 'fieldContours', 13)), 4, 28);
+        const fieldResolution = clamp(Math.floor(numberParam(params, 'fieldResolution', 58)), 28, 90);
+        const fieldSoftness = numberParam(params, 'fieldSoftness', 42.0);
         const shapeCount = Math.floor(numberParam(params, 'shapeCount', 6));
         const contourCount = Math.floor(numberParam(params, 'contourCount', 18));
         const spacing = numberParam(params, 'spacing', 5.0);
@@ -157,6 +187,11 @@ export class CapsuleInterferenceGenerator extends Generator {
         const canvas = new SvgCanvas(width, height, colorMode === 'Single pen' ? 1 : colorLayers);
         canvas.layerColors = ['#F05A4A', '#1FA2E1', '#8E63CE', '#F6A11A', '#33A02C', '#6A3D9A'];
         canvas.setStrokeWidth(strokeWidth);
+
+        if (constructionMode === 'Point field') {
+            return generatePointField(canvas, width, height, pointCount, fieldContours, fieldResolution, fieldSoftness, colorLayers, colorMode, seed);
+        }
+
         const paths = [];
 
         const rng = mulberry32(seed);
@@ -228,6 +263,150 @@ export class CapsuleInterferenceGenerator extends Generator {
 
         return canvas.toSvg();
     }
+}
+
+function generatePointField(canvas, width, height, pointCount, contourCount, resolution, softness, colorLayers, colorMode, seed) {
+    const activeLayers = colorMode === 'Single pen' ? 1 : colorLayers;
+    const margin = Math.min(width, height) * 0.10;
+    const stepX = (width - margin * 2) / resolution;
+    const stepY = (height - margin * 2) / resolution;
+
+    for (let layer = 0; layer < activeLayers; layer++) {
+        const rng = mulberry32(seed + 1009 * (layer + 1));
+        const points = distributedPoints(pointCount, width, height, margin, rng);
+        const grid = [];
+        let maxValue = 0;
+
+        for (let y = 0; y <= resolution; y++) {
+            const row = [];
+            const py = margin + y * stepY;
+            for (let x = 0; x <= resolution; x++) {
+                const px = margin + x * stepX;
+                const value = fieldValue(px, py, points, softness);
+                row.push(value);
+                maxValue = Math.max(maxValue, value);
+            }
+            grid.push(row);
+        }
+
+        for (let i = 0; i < contourCount; i++) {
+            const t = (i + 1) / (contourCount + 1);
+            const level = maxValue * (0.12 + Math.pow(t, 1.85) * 0.72);
+            const segments = marchingSegments(grid, resolution, stepX, stepY, margin, margin, level);
+            const polylines = joinSegments(segments, 0.75);
+            for (const line of polylines) {
+                if (line.length < 3) continue;
+                const d = line.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)}`).join(' ');
+                canvas.addPath(layer, `<path d='${d}' />`);
+            }
+        }
+    }
+
+    return canvas.toSvg();
+}
+
+function distributedPoints(count, width, height, margin, rng) {
+    const points = [];
+    const minDim = Math.min(width, height);
+    for (let i = 0; i < count; i++) {
+        let best = null;
+        let bestScore = -Infinity;
+        const candidates = i === 0 ? 1 : 24;
+        for (let c = 0; c < candidates; c++) {
+            const x = margin + rng() * (width - margin * 2);
+            const y = margin + rng() * (height - margin * 2);
+            const edgeBias = Math.min(x - margin, width - margin - x, y - margin, height - margin - y) / minDim;
+            let nearest = Infinity;
+            for (const p of points) {
+                const dx = x - p.x;
+                const dy = y - p.y;
+                nearest = Math.min(nearest, dx * dx + dy * dy);
+            }
+            const score = (points.length === 0 ? 1 : nearest / (minDim * minDim)) + edgeBias * 0.45 + (rng() - 0.5) * 0.08;
+            if (score > bestScore) {
+                bestScore = score;
+                best = { x, y, weight: 0.78 + rng() * 0.54 };
+            }
+        }
+        points.push(best);
+    }
+    return points;
+}
+
+function fieldValue(x, y, points, softness) {
+    let value = 0;
+    const soft2 = softness * softness;
+    for (const p of points) {
+        const dx = x - p.x;
+        const dy = y - p.y;
+        value += p.weight * soft2 / (dx * dx + dy * dy + soft2);
+    }
+    return value;
+}
+
+function marchingSegments(grid, resolution, stepX, stepY, originX, originY, level) {
+    const segments = [];
+    for (let y = 0; y < resolution; y++) {
+        for (let x = 0; x < resolution; x++) {
+            const x0 = originX + x * stepX;
+            const y0 = originY + y * stepY;
+            const v0 = grid[y][x];
+            const v1 = grid[y][x + 1];
+            const v2 = grid[y + 1][x + 1];
+            const v3 = grid[y + 1][x];
+            const crossings = [];
+            addCrossing(crossings, v0, v1, level, x0, y0, x0 + stepX, y0);
+            addCrossing(crossings, v1, v2, level, x0 + stepX, y0, x0 + stepX, y0 + stepY);
+            addCrossing(crossings, v2, v3, level, x0 + stepX, y0 + stepY, x0, y0 + stepY);
+            addCrossing(crossings, v3, v0, level, x0, y0 + stepY, x0, y0);
+            if (crossings.length === 2) {
+                segments.push([crossings[0], crossings[1]]);
+            } else if (crossings.length === 4) {
+                segments.push([crossings[0], crossings[1]], [crossings[2], crossings[3]]);
+            }
+        }
+    }
+    return segments;
+}
+
+function addCrossing(crossings, a, b, level, x1, y1, x2, y2) {
+    if ((a < level && b < level) || (a >= level && b >= level)) return;
+    const t = (level - a) / (b - a || 1);
+    crossings.push({ x: lerp(x1, x2, t), y: lerp(y1, y2, t) });
+}
+
+function joinSegments(segments, tolerance) {
+    const remaining = segments.map(([a, b]) => [a, b]);
+    const polylines = [];
+    while (remaining.length > 0) {
+        const line = [...remaining.pop()];
+        let grew = true;
+        while (grew) {
+            grew = false;
+            for (let i = remaining.length - 1; i >= 0; i--) {
+                const [a, b] = remaining[i];
+                if (pointsClose(line[line.length - 1], a, tolerance)) {
+                    line.push(b);
+                } else if (pointsClose(line[line.length - 1], b, tolerance)) {
+                    line.push(a);
+                } else if (pointsClose(line[0], b, tolerance)) {
+                    line.unshift(a);
+                } else if (pointsClose(line[0], a, tolerance)) {
+                    line.unshift(b);
+                } else {
+                    continue;
+                }
+                remaining.splice(i, 1);
+                grew = true;
+            }
+        }
+        polylines.push(line);
+    }
+    return polylines;
+}
+
+function pointsClose(a, b, tolerance) {
+    return Math.abs(a.x - b.x) <= tolerance && Math.abs(a.y - b.y) <= tolerance;
 }
 
 function buildFoci(focusCount, cx, cy, spanX, spanY, angle, rng) {

@@ -4,14 +4,19 @@ A plotter-oriented study of overlapping rounded-rectangle contour stacks. It is 
 
 ## Visual Model
 
-Each stack is a rounded rectangle repeatedly inset by a fixed spacing. Several stacks are then rotated and shifted across a loose horizontal construction axis, so the result reads as vertical and diagonal contour bands rather than one centered knot. Where the contours cross or align, the plotted ink naturally darkens.
+Each color layer is now a separate contour field. A configurable number of seed points is distributed across the full page for that layer, and the generator traces isolines through the combined influence field. The result is one flowing system per pen color: lines bend around many scattered points instead of revolving around one or two copied capsule pivots.
 
-The default now emits separate red and blue SVG layers, similar to multi-pen plotter studies where the third color appears optically through overlap. The SVG itself stays simple: many closed polyline paths, no fills, no raster effects.
+The older rounded-rectangle construction is still available through **constructionMode: Capsule stacks**, but the default is **Point field** because it better matches multi-pen plotter studies where the third color appears optically through overlap. The SVG itself stays simple: polyline paths, no fills, no raster effects.
 
 ## Parameters
 
 - **Preset**: Starting composition.
-- **shapeCount**: Number of overlapping contour stacks.
+- **constructionMode**: `Point field` for distributed flowing contours, or `Capsule stacks` for the earlier rounded-rectangle construction.
+- **pointCount**: Number of distributed attractor points per color layer.
+- **fieldContours**: Number of isolines traced through each color field.
+- **fieldResolution**: Sampling grid resolution; higher values make smoother contours but more paths.
+- **fieldSoftness**: Influence radius around each point; higher values merge the flows more strongly.
+- **shapeCount**: Number of overlapping contour stacks in capsule-stack mode.
 - **contourCount**: Number of nested outlines in each stack.
 - **spacing**: Distance between neighboring outlines.
 - **baseWidth / baseHeight**: Outer size of the first contour.
