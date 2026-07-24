@@ -17,7 +17,6 @@ export class CapsuleInterferenceGenerator extends Generator {
             ParameterDefinition.selection('constructionMode', 'Circle route', ['Circle route', 'Point field', 'Capsule stacks'], 'Circle route keeps parallel lines flowing around distributed circles'),
             ParameterDefinition.integer('circleCount', 4, 2, 12, 'Number of randomized circles the parallel lines route around'),
             ParameterDefinition.doubleVal('circleDiameter', 86.0, 20.0, 220.0, 'Diameter of the invisible guide circles'),
-            ParameterDefinition.integer('circleSmoothness', 32, 8, 96, 'Number of segments used for round circle detours'),
             ParameterDefinition.selection('routeSide', 'Alternate', ['Left', 'Right', 'Alternate'], 'Which side the line bundle takes around each circle'),
             ParameterDefinition.integer('pointCount', 9, 2, 28, 'Number of distributed flow points per color layer'),
             ParameterDefinition.integer('fieldContours', 13, 4, 28, 'Number of field contour lines per color layer'),
@@ -51,7 +50,6 @@ export class CapsuleInterferenceGenerator extends Generator {
                         constructionMode: 'Circle route',
                         circleCount: 4,
                         circleDiameter: 86.0,
-                        circleSmoothness: 32,
                         routeSide: 'Alternate',
                         pointCount: 9,
                         fieldContours: 13,
@@ -81,7 +79,6 @@ export class CapsuleInterferenceGenerator extends Generator {
                         constructionMode: 'Circle route',
                         circleCount: 3,
                         circleDiameter: 92.0,
-                        circleSmoothness: 36,
                         routeSide: 'Left',
                         pointCount: 6,
                         fieldContours: 10,
@@ -111,7 +108,6 @@ export class CapsuleInterferenceGenerator extends Generator {
                         constructionMode: 'Circle route',
                         circleCount: 6,
                         circleDiameter: 64.0,
-                        circleSmoothness: 28,
                         routeSide: 'Alternate',
                         pointCount: 14,
                         fieldContours: 18,
@@ -141,7 +137,6 @@ export class CapsuleInterferenceGenerator extends Generator {
                         constructionMode: 'Circle route',
                         circleCount: 5,
                         circleDiameter: 112.0,
-                        circleSmoothness: 40,
                         routeSide: 'Right',
                         pointCount: 11,
                         fieldContours: 11,
@@ -184,7 +179,6 @@ export class CapsuleInterferenceGenerator extends Generator {
         const constructionMode = typeof params.constructionMode === 'string' ? params.constructionMode : 'Circle route';
         const circleCount = clamp(Math.floor(numberParam(params, 'circleCount', 4)), 2, 12);
         const circleDiameter = numberParam(params, 'circleDiameter', 86.0);
-        const circleSmoothness = clamp(Math.floor(numberParam(params, 'circleSmoothness', 32)), 8, 96);
         const routeSide = typeof params.routeSide === 'string' ? params.routeSide : 'Alternate';
         const pointCount = clamp(Math.floor(numberParam(params, 'pointCount', 9)), 2, 28);
         const fieldContours = clamp(Math.floor(numberParam(params, 'fieldContours', 13)), 4, 28);
@@ -213,7 +207,7 @@ export class CapsuleInterferenceGenerator extends Generator {
         canvas.setStrokeWidth(strokeWidth);
 
         if (constructionMode === 'Circle route') {
-            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, circleSmoothness, contourCount, spacing, routeSide, colorLayers, colorMode, seed);
+            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, contourCount, spacing, routeSide, colorLayers, colorMode, seed);
         }
 
         if (constructionMode === 'Point field') {
@@ -293,7 +287,7 @@ export class CapsuleInterferenceGenerator extends Generator {
     }
 }
 
-function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, circleSmoothness, lineCount, spacing, routeSide, colorLayers, colorMode, seed) {
+function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, colorMode, seed) {
     const activeLayers = colorMode === 'Single pen' ? 1 : colorLayers;
     const margin = Math.min(width, height) * 0.18;
     const records = [];
@@ -307,9 +301,7 @@ function generateCircleRoute(canvas, width, height, circleCount, circleDiameter,
         for (let i = 0; i < lineCount; i++) {
             const radius = circleDiameter / 2 + i * spacing + lineOffset;
             if (radius < 4) continue;
-            const pts = routeAroundCircles(circles, radius, layerSide, circleSmoothness);
-            if (pts.length < 4) continue;
-            const d = pts.map((pt, index) => `${index === 0 ? 'M' : 'L'} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)}`).join(' ');
+            const d = routeAroundCirclesPath(circles, radius, layerSide);
             records.push({ layer, path: d });
         }
     }
@@ -330,32 +322,59 @@ function generateCircleRoute(canvas, width, height, circleCount, circleDiameter,
     return canvas.toSvg();
 }
 
-function routeAroundCircles(circles, radius, side, circleSmoothness) {
-    const pts = [];
+function routeAroundCirclesPath(circles, radius, side) {
     const n = circles.length;
-    const arcSteps = circleSmoothness;
+    const parts = [];
+    let first = null;
+    let previousExit = null;
+
     for (let i = 0; i < n; i++) {
         const prev = circles[(i - 1 + n) % n];
         const cur = circles[i];
         const next = circles[(i + 1) % n];
         const incoming = Math.atan2(cur.y - prev.y, cur.x - prev.x);
         const outgoing = Math.atan2(next.y - cur.y, next.x - cur.x);
-        const localSide = side;
-        const entry = incoming + localSide * Math.PI / 2;
-        const exit = outgoing + localSide * Math.PI / 2;
-        const arc = angleArc(entry, exit, localSide);
-        for (let step = 0; step <= arcSteps; step++) {
-            if (i > 0 && step === 0) continue;
-            const t = step / arcSteps;
-            const a = entry + arc * t;
-            pts.push({
-                x: cur.x + Math.cos(a) * radius,
-                y: cur.y + Math.sin(a) * radius,
-            });
+        const entryAngle = incoming + side * Math.PI / 2;
+        const exitAngle = outgoing + side * Math.PI / 2;
+        const entry = circlePoint(cur, radius, entryAngle);
+
+        if (i === 0) {
+            first = entry;
+            parts.push(`M ${entry.x.toFixed(2)} ${entry.y.toFixed(2)}`);
+        } else if (previousExit) {
+            parts.push(`L ${entry.x.toFixed(2)} ${entry.y.toFixed(2)}`);
         }
+
+        parts.push(...cubicArcCommands(cur, radius, entryAngle, exitAngle, side));
+        previousExit = circlePoint(cur, radius, exitAngle);
     }
-    pts.push({ ...pts[0] });
-    return pts;
+
+    if (first && previousExit) {
+        parts.push(`L ${first.x.toFixed(2)} ${first.y.toFixed(2)}`);
+    }
+    return parts.join(' ');
+}
+
+function cubicArcCommands(center, radius, from, to, side) {
+    const total = angleArc(from, to, side);
+    const segments = Math.max(1, Math.ceil(Math.abs(total) / (Math.PI / 2)));
+    const commands = [];
+    for (let i = 0; i < segments; i++) {
+        const a0 = from + total * i / segments;
+        const a1 = from + total * (i + 1) / segments;
+        const delta = a1 - a0;
+        const k = 4 / 3 * Math.tan(delta / 4);
+        const p0 = circlePoint(center, radius, a0);
+        const p1 = circlePoint(center, radius, a1);
+        const c1 = { x: p0.x - Math.sin(a0) * radius * k, y: p0.y + Math.cos(a0) * radius * k };
+        const c2 = { x: p1.x + Math.sin(a1) * radius * k, y: p1.y - Math.cos(a1) * radius * k };
+        commands.push(`C ${c1.x.toFixed(2)} ${c1.y.toFixed(2)} ${c2.x.toFixed(2)} ${c2.y.toFixed(2)} ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`);
+    }
+    return commands;
+}
+
+function circlePoint(center, radius, angle) {
+    return { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius };
 }
 
 function angleArc(from, to, side) {
@@ -542,9 +561,8 @@ function pathBounds(paths) {
     let maxY = -Infinity;
 
     for (const path of paths) {
-        for (const [, _command, xStr, yStr] of path.matchAll(/([ML])\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)) {
-            const x = Number(xStr);
-            const y = Number(yStr);
+        for (const [match] of path.matchAll(/-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?/g)) {
+            const [x, y] = match.trim().split(/\s+/).map(Number);
             minX = Math.min(minX, x);
             maxX = Math.max(maxX, x);
             minY = Math.min(minY, y);
@@ -556,10 +574,9 @@ function pathBounds(paths) {
 }
 
 function transformPath(path, scale, dx, dy) {
-    return path.replace(/([ML])\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g, (_match, command, xStr, yStr) => {
-        const x = Number(xStr) * scale + dx;
-        const y = Number(yStr) * scale + dy;
-        return `${command} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    return path.replace(/-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?/g, (pair) => {
+        const [x, y] = pair.trim().split(/\s+/).map(Number);
+        return `${(x * scale + dx).toFixed(2)} ${(y * scale + dy).toFixed(2)}`;
     });
 }
 

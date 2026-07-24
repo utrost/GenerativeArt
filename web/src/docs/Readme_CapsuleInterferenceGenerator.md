@@ -14,7 +14,6 @@ Each color layer gets its own route and guide circles, so red and blue are indep
 - **constructionMode**: `Circle route` for parallel line bundles around guide circles, `Point field` for distributed flowing contours, or `Capsule stacks` for the earlier rounded-rectangle construction.
 - **circleCount**: Number of randomized guide circles in each route.
 - **circleDiameter**: Diameter of the invisible circles the lines flow around.
-- **circleSmoothness**: Segment count used for the circular detours; raise it if plotted circles look faceted.
 - **routeSide**: Whether the bundle flows left, right, or alternates side by color layer.
 - **pointCount**: Number of distributed attractor points per color layer in point-field mode.
 - **fieldContours**: Number of isolines traced through each color field.
@@ -40,6 +39,7 @@ Each color layer gets its own route and guide circles, so red and blue are indep
 ## Plotter Notes
 
 - Default **By stack** mode alternates red and blue plotted stacks; intersections create the purple/darker third effect.
+- Circle-route detours use cubic Bézier arcs rather than segmented polygons, so large circles stay visually round without needing hundreds of vertices.
 - Use **Single pen** if you want the earlier monochrome version.
 - Use **Stacked passes** only when you deliberately want every contour redrawn by several pens with a small registration shift.
 - Start with **1+1=3 Study** and A4 portrait or landscape.
