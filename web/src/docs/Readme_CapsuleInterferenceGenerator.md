@@ -6,7 +6,7 @@ A plotter-oriented study of parallel line bundles flowing around distributed gui
 
 The default mode distributes a configurable number of invisible guide circles across the page. A bundle of parallel plotted lines routes from circle 1 to circle 2 to circle 3, and so on, then closes back to circle 1. At each circle the bundle consistently flows around the left or right side, preserving the appeal of the earlier parallel-line construction while avoiding copied/mirrored two-pivot capsule stacks.
 
-Each color layer gets its own route and guide circles, so red and blue are independent flowing systems that can cross and create a third visual object through overlap. The older point-field isoline and rounded-rectangle constructions remain available through **constructionMode**, but the default is now **Circle route**. The SVG itself stays simple: polyline paths, no fills, no raster effects.
+In the default color setup, every pen layer shares the same guide-circle route family, but the line bundle is phase-shifted by a fraction of the line spacing. With two colors, the second pen sits halfway between the first pen's parallel lines; with three or more colors, the layers divide the gaps evenly. The older point-field isoline and rounded-rectangle constructions remain available through **constructionMode**, but the default is now **Circle route**. The SVG itself stays simple: stroked paths, no fills, no raster effects.
 
 ## Parameters
 
@@ -14,7 +14,7 @@ Each color layer gets its own route and guide circles, so red and blue are indep
 - **constructionMode**: `Circle route` for parallel line bundles around guide circles, `Point field` for distributed flowing contours, or `Capsule stacks` for the earlier rounded-rectangle construction.
 - **circleCount**: Number of randomized guide circles in each route.
 - **circleDiameter**: Diameter of the invisible circles the lines flow around.
-- **routeSide**: Whether the bundle flows left, right, or alternates side by color layer.
+- **routeSide**: Whether the bundle flows left, right, or alternates around successive guide circles.
 - **pointCount**: Number of distributed attractor points per color layer in point-field mode.
 - **fieldContours**: Number of isolines traced through each color field.
 - **fieldResolution**: Sampling grid resolution; higher values make smoother contours but more paths.
@@ -32,13 +32,17 @@ Each color layer gets its own route and guide circles, so red and blue are indep
 - **jitter**: Seeded imperfection in position, size, and rotation.
 - **colorMode**: Assign colors by stack, by contour band, as duplicated stacked passes, or as one pen.
 - **colorLayers**: Number of SVG pen layers to emit.
+- **layerPlacement**: In circle-route mode, `Interleaved gaps` puts color layers into the whitespace between neighboring parallel lines, `Overprint` draws each color on the same offsets, and `Custom phase` uses **layerPhase**.
+- **layerPhase**: Custom layer shift as a fraction of **spacing**. `0.5` puts a second color in the gap; around `0.33` works well for three colors.
 - **registrationOffset**: Optional per-color offset when using stacked duplicated passes.
 - **strokeWidth**: Preview stroke width only; the real width is your pen.
 - **seed**: Reproducible variant seed.
 
 ## Plotter Notes
 
-- Default **By stack** mode alternates red and blue plotted stacks; intersections create the purple/darker third effect.
+- Default **By stack** plus **Interleaved gaps** mode draws red and blue as one shared route family with blue deliberately placed in the red gaps.
+- Use **Overprint** when you want each pen to redraw the exact same route offsets.
+- Use **Custom phase** when you want a less regular relationship than the automatic `1 / colorLayers` spacing.
 - Circle-route detours use cubic Bézier arcs rather than segmented polygons, so large circles stay visually round without needing hundreds of vertices.
 - Use **Single pen** if you want the earlier monochrome version.
 - Use **Stacked passes** only when you deliberately want every contour redrawn by several pens with a small registration shift.

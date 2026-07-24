@@ -36,6 +36,8 @@ export class CapsuleInterferenceGenerator extends Generator {
             ParameterDefinition.doubleVal('jitter', 70.0, 0.0, 180.0, 'Seeded translation and rotation looseness'),
             ParameterDefinition.selection('colorMode', 'By stack', ['Single pen', 'By stack', 'Contour bands', 'Stacked passes'], 'How paths are assigned to SVG pen-color layers'),
             ParameterDefinition.integer('colorLayers', 2, 1, 6, 'Number of plotted color layers to emit'),
+            ParameterDefinition.selection('layerPlacement', 'Interleaved gaps', ['Interleaved gaps', 'Overprint', 'Custom phase'], 'How color layers sit relative to the parallel-line spacing in circle-route mode'),
+            ParameterDefinition.doubleVal('layerPhase', 0.5, 0.0, 1.0, 'Custom color-layer phase as a fraction of line spacing; 0.5 puts a second pen in the gaps'),
             ParameterDefinition.doubleVal('registrationOffset', 0.0, 0.0, 16.0, 'Small per-color offset for stacked multi-pen passes'),
             ParameterDefinition.doubleVal('strokeWidth', 0.75, 0.1, 5.0, 'Preview stroke width; physical line width comes from the pen'),
             ParameterDefinition.integer('seed', 303, 1, 99999, 'Deterministic random seed'),
@@ -69,6 +71,8 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 70.0,
                         colorMode: 'By stack',
                         colorLayers: 2,
+                        layerPlacement: 'Interleaved gaps',
+                        layerPhase: 0.5,
                         registrationOffset: 0.0,
                         strokeWidth: 0.75,
                         seed: 303,
@@ -98,6 +102,8 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 38.0,
                         colorMode: 'By stack',
                         colorLayers: 2,
+                        layerPlacement: 'Interleaved gaps',
+                        layerPhase: 0.5,
                         registrationOffset: 1.5,
                         strokeWidth: 0.8,
                         seed: 91,
@@ -127,6 +133,8 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 78.0,
                         colorMode: 'Contour bands',
                         colorLayers: 4,
+                        layerPlacement: 'Interleaved gaps',
+                        layerPhase: 0.25,
                         registrationOffset: 2.0,
                         strokeWidth: 0.7,
                         seed: 611,
@@ -156,6 +164,8 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 105.0,
                         colorMode: 'Stacked passes',
                         colorLayers: 3,
+                        layerPlacement: 'Custom phase',
+                        layerPhase: 0.33,
                         registrationOffset: 5.0,
                         strokeWidth: 1.0,
                         seed: 44,
@@ -198,6 +208,8 @@ export class CapsuleInterferenceGenerator extends Generator {
         const jitter = numberParam(params, 'jitter', 22.0);
         const colorMode = typeof params.colorMode === 'string' ? params.colorMode : 'By stack';
         const colorLayers = clamp(Math.floor(numberParam(params, 'colorLayers', 2)), 1, 6);
+        const layerPlacement = typeof params.layerPlacement === 'string' ? params.layerPlacement : 'Interleaved gaps';
+        const layerPhase = numberParam(params, 'layerPhase', 0.5);
         const registrationOffset = numberParam(params, 'registrationOffset', 0.0);
         const strokeWidth = numberParam(params, 'strokeWidth', 0.9);
         const seed = Math.floor(numberParam(params, 'seed', 303));
@@ -207,7 +219,7 @@ export class CapsuleInterferenceGenerator extends Generator {
         canvas.setStrokeWidth(strokeWidth);
 
         if (constructionMode === 'Circle route') {
-            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, contourCount, spacing, routeSide, colorLayers, colorMode, seed);
+            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, contourCount, spacing, routeSide, colorLayers, colorMode, layerPlacement, layerPhase, seed);
         }
 
         if (constructionMode === 'Point field') {
@@ -287,21 +299,20 @@ export class CapsuleInterferenceGenerator extends Generator {
     }
 }
 
-function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, colorMode, seed) {
+function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, colorMode, layerPlacement, layerPhase, seed) {
     const activeLayers = colorMode === 'Single pen' ? 1 : colorLayers;
     const margin = Math.min(width, height) * 0.18;
     const records = [];
+    const guideRng = mulberry32(seed + 701);
+    const circles = distributedPoints(circleCount, width, height, Math.min(margin, Math.min(width, height) * 0.28), guideRng);
 
     for (let layer = 0; layer < activeLayers; layer++) {
-        const rng = mulberry32(seed + 701 * (layer + 1));
-        const circles = distributedPoints(circleCount, width, height, Math.min(margin, Math.min(width, height) * 0.28), rng);
-        const layerSide = routeSide === 'Left' ? 1 : routeSide === 'Right' ? -1 : (layer % 2 === 0 ? 1 : -1);
-        const lineOffset = colorMode === 'Single pen' ? 0 : (layer - (activeLayers - 1) / 2) * spacing * 0.42;
+        const lineOffset = layerPhaseOffset(layer, activeLayers, spacing, colorMode, layerPlacement, layerPhase);
 
         for (let i = 0; i < lineCount; i++) {
             const radius = circleDiameter / 2 + i * spacing + lineOffset;
             if (radius < 4) continue;
-            const d = routeAroundCirclesPath(circles, radius, layerSide);
+            const d = routeAroundCirclesPath(circles, radius, routeSide);
             records.push({ layer, path: d });
         }
     }
@@ -322,7 +333,15 @@ function generateCircleRoute(canvas, width, height, circleCount, circleDiameter,
     return canvas.toSvg();
 }
 
-function routeAroundCirclesPath(circles, radius, side) {
+function layerPhaseOffset(layer, activeLayers, spacing, colorMode, layerPlacement, layerPhase) {
+    if (colorMode === 'Single pen' || activeLayers <= 1 || layerPlacement === 'Overprint') return 0;
+    if (layerPlacement === 'Custom phase') {
+        return positiveModulo(layer * clamp(layerPhase, 0, 1), 1) * spacing;
+    }
+    return layer / activeLayers * spacing;
+}
+
+function routeAroundCirclesPath(circles, radius, routeSide) {
     const n = circles.length;
     const parts = [];
     let first = null;
@@ -332,6 +351,7 @@ function routeAroundCirclesPath(circles, radius, side) {
         const prev = circles[(i - 1 + n) % n];
         const cur = circles[i];
         const next = circles[(i + 1) % n];
+        const side = sideForCircle(routeSide, i);
         const incoming = Math.atan2(cur.y - prev.y, cur.x - prev.x);
         const outgoing = Math.atan2(next.y - cur.y, next.x - cur.x);
         const entryAngle = incoming + side * Math.PI / 2;
@@ -353,6 +373,12 @@ function routeAroundCirclesPath(circles, radius, side) {
         parts.push(`L ${first.x.toFixed(2)} ${first.y.toFixed(2)}`);
     }
     return parts.join(' ');
+}
+
+function sideForCircle(routeSide, circleIndex) {
+    if (routeSide === 'Left') return 1;
+    if (routeSide === 'Right') return -1;
+    return circleIndex % 2 === 0 ? 1 : -1;
 }
 
 function cubicArcCommands(center, radius, from, to, side) {
@@ -388,6 +414,10 @@ function normalizeAngle(angle) {
     while (angle <= -Math.PI) angle += Math.PI * 2;
     while (angle > Math.PI) angle -= Math.PI * 2;
     return angle;
+}
+
+function positiveModulo(value, modulus) {
+    return ((value % modulus) + modulus) % modulus;
 }
 
 function generatePointField(canvas, width, height, pointCount, contourCount, resolution, softness, colorLayers, colorMode, seed) {
