@@ -17,6 +17,10 @@ The default now emits separate red and blue SVG layers, similar to multi-pen plo
 - **baseWidth / baseHeight**: Outer size of the first contour.
 - **cornerRadius**: How pill-like the rounded rectangle becomes.
 - **rotationSpread**: Total angular fan across the stacks.
+- **focusCount**: Number of seeded construction centers; this avoids every variant orbiting the same two points.
+- **focusSpread**: How widely those construction centers are scattered before the final page fit.
+- **asymmetry**: Allows the fitted composition to sit away from the exact page center while staying inside margins.
+- **pageFill**: Slightly backs off the fit so asymmetry has room to move the composition.
 - **jitter**: Seeded imperfection in position, size, and rotation.
 - **colorMode**: Assign colors by stack, by contour band, as duplicated stacked passes, or as one pen.
 - **colorLayers**: Number of SVG pen layers to emit.

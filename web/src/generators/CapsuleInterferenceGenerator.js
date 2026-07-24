@@ -14,13 +14,17 @@ export class CapsuleInterferenceGenerator extends Generator {
     getParameterDefinitions() {
         return [
             ParameterDefinition.selection('Preset', '1+1=3 Study', ['1+1=3 Study', 'Quiet Offset', 'Dense Knot', 'Loose Stack', 'Custom'], 'Named starting points inspired by overlapped plotter contour studies'),
-            ParameterDefinition.integer('shapeCount', 5, 2, 8, 'Number of overlapping rounded-rectangle contour stacks'),
+            ParameterDefinition.integer('shapeCount', 6, 2, 10, 'Number of overlapping rounded-rectangle contour stacks'),
             ParameterDefinition.integer('contourCount', 16, 4, 48, 'Number of parallel offset contours per stack'),
             ParameterDefinition.doubleVal('spacing', 6.0, 1.0, 14.0, 'Distance between neighboring contours in SVG units'),
             ParameterDefinition.doubleVal('baseWidth', 560.0, 80.0, 900.0, 'Outer width of the largest capsule'),
             ParameterDefinition.doubleVal('baseHeight', 155.0, 40.0, 420.0, 'Outer height of the largest capsule'),
             ParameterDefinition.doubleVal('cornerRadius', 46.0, 5.0, 220.0, 'Rounded corner radius before inset clamping'),
             ParameterDefinition.doubleVal('rotationSpread', 118.0, 0.0, 180.0, 'Total angular spread across all stacks'),
+            ParameterDefinition.integer('focusCount', 5, 1, 7, 'Number of seeded construction centers that stacks orbit or bridge'),
+            ParameterDefinition.doubleVal('focusSpread', 72.0, 0.0, 100.0, 'How widely the construction centers are scattered across the page'),
+            ParameterDefinition.doubleVal('asymmetry', 62.0, 0.0, 100.0, 'How far the fitted composition may sit away from the exact page center'),
+            ParameterDefinition.doubleVal('pageFill', 92.0, 60.0, 100.0, 'How much of the safe page box the composition should occupy after fitting'),
             ParameterDefinition.doubleVal('jitter', 70.0, 0.0, 180.0, 'Seeded translation and rotation looseness'),
             ParameterDefinition.selection('colorMode', 'By stack', ['Single pen', 'By stack', 'Contour bands', 'Stacked passes'], 'How paths are assigned to SVG pen-color layers'),
             ParameterDefinition.integer('colorLayers', 2, 1, 6, 'Number of plotted color layers to emit'),
@@ -35,13 +39,17 @@ export class CapsuleInterferenceGenerator extends Generator {
             switch (newValue) {
                 case '1+1=3 Study':
                     Object.assign(currentValues, {
-                        shapeCount: 5,
+                        shapeCount: 6,
                         contourCount: 16,
                         spacing: 6.0,
                         baseWidth: 560.0,
                         baseHeight: 155.0,
                         cornerRadius: 46.0,
                         rotationSpread: 118.0,
+                        focusCount: 5,
+                        focusSpread: 72.0,
+                        asymmetry: 62.0,
+                        pageFill: 92.0,
                         jitter: 70.0,
                         colorMode: 'By stack',
                         colorLayers: 2,
@@ -59,6 +67,10 @@ export class CapsuleInterferenceGenerator extends Generator {
                         baseHeight: 130.0,
                         cornerRadius: 46.0,
                         rotationSpread: 82.0,
+                        focusCount: 3,
+                        focusSpread: 48.0,
+                        asymmetry: 35.0,
+                        pageFill: 94.0,
                         jitter: 38.0,
                         colorMode: 'By stack',
                         colorLayers: 2,
@@ -76,6 +88,10 @@ export class CapsuleInterferenceGenerator extends Generator {
                         baseHeight: 165.0,
                         cornerRadius: 60.0,
                         rotationSpread: 156.0,
+                        focusCount: 5,
+                        focusSpread: 85.0,
+                        asymmetry: 52.0,
+                        pageFill: 96.0,
                         jitter: 78.0,
                         colorMode: 'Contour bands',
                         colorLayers: 4,
@@ -93,6 +109,10 @@ export class CapsuleInterferenceGenerator extends Generator {
                         baseHeight: 185.0,
                         cornerRadius: 72.0,
                         rotationSpread: 148.0,
+                        focusCount: 4,
+                        focusSpread: 92.0,
+                        asymmetry: 74.0,
+                        pageFill: 88.0,
                         jitter: 105.0,
                         colorMode: 'Stacked passes',
                         colorLayers: 3,
@@ -116,13 +136,17 @@ export class CapsuleInterferenceGenerator extends Generator {
     generate(params) {
         const width = numberParam(params, 'width', 800);
         const height = numberParam(params, 'height', 600);
-        const shapeCount = Math.floor(numberParam(params, 'shapeCount', 4));
+        const shapeCount = Math.floor(numberParam(params, 'shapeCount', 6));
         const contourCount = Math.floor(numberParam(params, 'contourCount', 18));
         const spacing = numberParam(params, 'spacing', 5.0);
         const baseWidth = numberParam(params, 'baseWidth', 320.0);
         const baseHeight = numberParam(params, 'baseHeight', 150.0);
         const cornerRadius = numberParam(params, 'cornerRadius', 52.0);
         const rotationSpread = numberParam(params, 'rotationSpread', 128.0);
+        const focusCount = clamp(Math.floor(numberParam(params, 'focusCount', 5)), 1, 7);
+        const focusSpread = numberParam(params, 'focusSpread', 72.0) / 100;
+        const asymmetry = numberParam(params, 'asymmetry', 62.0) / 100;
+        const pageFill = numberParam(params, 'pageFill', 92.0) / 100;
         const jitter = numberParam(params, 'jitter', 22.0);
         const colorMode = typeof params.colorMode === 'string' ? params.colorMode : 'By stack';
         const colorLayers = clamp(Math.floor(numberParam(params, 'colorLayers', 2)), 1, 6);
@@ -140,20 +164,23 @@ export class CapsuleInterferenceGenerator extends Generator {
         const cy = height / 2;
         const startAngle = -rotationSpread / 2;
         const angleStep = shapeCount <= 1 ? 0 : rotationSpread / (shapeCount - 1);
-        const compositionAngle = (-10 + (rng() - 0.5) * 18) * Math.PI / 180;
-        const spanX = Math.min(width * 0.62, baseWidth * 0.78 + jitter * 1.8);
-        const spanY = Math.min(height * 0.28, baseHeight * 0.45 + jitter * 0.85);
+        const compositionAngle = (-18 + (rng() - 0.5) * 38) * Math.PI / 180;
+        const spanX = Math.min(width * 0.74, baseWidth * 0.92 + jitter * 2.2) * focusSpread;
+        const spanY = Math.min(height * 0.46, baseHeight * 0.95 + jitter * 1.65) * focusSpread;
+        const foci = buildFoci(focusCount, cx, cy, spanX, spanY, compositionAngle, rng);
 
         for (let s = 0; s < shapeCount; s++) {
             const normalized = shapeCount <= 1 ? 0.5 : s / (shapeCount - 1);
-            const centered = normalized - 0.5;
-            const wave = Math.sin(normalized * Math.PI * 2 + seed * 0.01);
-            const along = centered * spanX + (rng() - 0.5) * jitter * 0.75;
-            const across = wave * spanY * 0.5 + (rng() - 0.5) * jitter * 0.95;
-            const localCx = cx + along * Math.cos(compositionAngle) - across * Math.sin(compositionAngle);
-            const localCy = cy + along * Math.sin(compositionAngle) + across * Math.cos(compositionAngle);
-            const angleDeg = 90 + startAngle + angleStep * s + (rng() - 0.5) * jitter * 0.38;
-            const wScale = 0.86 + rng() * 0.30;
+            const primary = foci[s % foci.length];
+            const secondary = foci[(s + 1 + Math.floor(rng() * Math.max(1, foci.length - 1))) % foci.length];
+            const blend = 0.18 + rng() * 0.64;
+            const wave = Math.sin(normalized * Math.PI * 2.3 + seed * 0.017);
+            const localCx = lerp(primary.x, secondary.x, blend) + (rng() - 0.5) * jitter * 1.25;
+            const localCy = lerp(primary.y, secondary.y, blend) + wave * spanY * 0.16 + (rng() - 0.5) * jitter * 1.15;
+            const bridgeAngle = Math.atan2(secondary.y - primary.y, secondary.x - primary.x) * 180 / Math.PI;
+            const fanAngle = startAngle + angleStep * s;
+            const angleDeg = 90 + bridgeAngle * 0.55 + fanAngle * 0.45 + (rng() - 0.5) * jitter * 0.42;
+            const wScale = 0.82 + rng() * 0.38;
             const hScale = 0.78 + rng() * 0.30;
             const rScale = 0.75 + rng() * 0.35;
             const contourDrift = (rng() - 0.5) * jitter * 0.05;
@@ -179,9 +206,16 @@ export class CapsuleInterferenceGenerator extends Generator {
             const margin = Math.min(width, height) * 0.08;
             const drawnW = bounds.maxX - bounds.minX;
             const drawnH = bounds.maxY - bounds.minY;
-            const scale = Math.min((width - margin * 2) / drawnW, (height - margin * 2) / drawnH);
-            const dx = width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
-            const dy = height / 2 - ((bounds.minY + bounds.maxY) / 2) * scale;
+            const scale = Math.min((width - margin * 2) / drawnW, (height - margin * 2) / drawnH) * clamp(pageFill, 0.6, 1.0);
+            let dx = width / 2 - ((bounds.minX + bounds.maxX) / 2) * scale;
+            let dy = height / 2 - ((bounds.minY + bounds.maxY) / 2) * scale;
+            if (asymmetry > 0) {
+                const placementRng = mulberry32(seed ^ 0xA5A5A5A5);
+                const desiredCx = width * (0.5 + (placementRng() - 0.5) * 0.34 * asymmetry);
+                const desiredCy = height * (0.5 + (placementRng() - 0.5) * 0.28 * asymmetry);
+                dx = clamp(desiredCx - ((bounds.minX + bounds.maxX) / 2) * scale, margin - bounds.minX * scale, width - margin - bounds.maxX * scale);
+                dy = clamp(desiredCy - ((bounds.minY + bounds.maxY) / 2) * scale, margin - bounds.minY * scale, height - margin - bounds.maxY * scale);
+            }
 
             for (const record of paths) {
                 const d = transformPath(record.path, scale, dx, dy);
@@ -194,6 +228,25 @@ export class CapsuleInterferenceGenerator extends Generator {
 
         return canvas.toSvg();
     }
+}
+
+function buildFoci(focusCount, cx, cy, spanX, spanY, angle, rng) {
+    const foci = [];
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < focusCount; i++) {
+        const radial = focusCount === 1 ? 0 : Math.sqrt((i + 0.65) / focusCount);
+        const theta = angle + i * golden + (rng() - 0.5) * 0.65;
+        const squash = 0.62 + rng() * 0.62;
+        foci.push({
+            x: cx + Math.cos(theta) * spanX * radial * squash + (rng() - 0.5) * spanX * 0.18,
+            y: cy + Math.sin(theta) * spanY * radial / squash + (rng() - 0.5) * spanY * 0.22,
+        });
+    }
+    return foci;
+}
+
+function lerp(a, b, t) {
+    return a + (b - a) * t;
 }
 
 function pathBounds(paths) {
