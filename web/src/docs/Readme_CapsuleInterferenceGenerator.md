@@ -14,6 +14,7 @@ Each color layer gets its own route and guide circles, so red and blue are indep
 - **constructionMode**: `Circle route` for parallel line bundles around guide circles, `Point field` for distributed flowing contours, or `Capsule stacks` for the earlier rounded-rectangle construction.
 - **circleCount**: Number of randomized guide circles in each route.
 - **circleDiameter**: Diameter of the invisible circles the lines flow around.
+- **circleSmoothness**: Segment count used for the circular detours; raise it if plotted circles look faceted.
 - **routeSide**: Whether the bundle flows left, right, or alternates side by color layer.
 - **pointCount**: Number of distributed attractor points per color layer in point-field mode.
 - **fieldContours**: Number of isolines traced through each color field.
