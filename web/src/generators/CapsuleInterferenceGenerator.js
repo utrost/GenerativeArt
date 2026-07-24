@@ -2,6 +2,12 @@ import { Generator } from '../core/Generator';
 import { ParameterDefinition } from '../core/ParameterDefinition';
 import { SvgCanvas } from '../core/SvgCanvas';
 
+function modeParam(definition, appliesTo, label = definition.name) {
+    definition.appliesTo = appliesTo;
+    definition.label = label;
+    return definition;
+}
+
 export class CapsuleInterferenceGenerator extends Generator {
     getId() {
         return 'capsule_interference';
@@ -15,30 +21,32 @@ export class CapsuleInterferenceGenerator extends Generator {
         return [
             ParameterDefinition.selection('Preset', '1+1=3 Study', ['1+1=3 Study', 'Quiet Offset', 'Dense Knot', 'Loose Stack', 'Custom'], 'Named starting points inspired by overlapped plotter contour studies'),
             ParameterDefinition.selection('constructionMode', 'Circle route', ['Circle route', 'Point field', 'Capsule stacks'], 'Circle route keeps parallel lines flowing around distributed circles'),
-            ParameterDefinition.integer('circleCount', 4, 2, 12, 'Number of randomized circles the parallel lines route around'),
-            ParameterDefinition.doubleVal('circleDiameter', 86.0, 20.0, 220.0, 'Diameter of the invisible guide circles'),
-            ParameterDefinition.selection('routeSide', 'Alternate', ['Left', 'Right', 'Alternate'], 'Which side the line bundle takes around each circle'),
-            ParameterDefinition.integer('pointCount', 9, 2, 28, 'Number of distributed flow points per color layer'),
-            ParameterDefinition.integer('fieldContours', 13, 4, 28, 'Number of field contour lines per color layer'),
-            ParameterDefinition.integer('fieldResolution', 58, 28, 90, 'Sampling grid resolution for field contours'),
-            ParameterDefinition.doubleVal('fieldSoftness', 42.0, 12.0, 120.0, 'Point influence radius for flowing contour fields'),
-            ParameterDefinition.integer('shapeCount', 6, 2, 10, 'Number of overlapping rounded-rectangle contour stacks'),
-            ParameterDefinition.integer('contourCount', 16, 4, 48, 'Number of parallel offset contours per stack'),
-            ParameterDefinition.doubleVal('spacing', 6.0, 1.0, 14.0, 'Distance between neighboring contours in SVG units'),
-            ParameterDefinition.doubleVal('baseWidth', 560.0, 80.0, 900.0, 'Outer width of the largest capsule'),
-            ParameterDefinition.doubleVal('baseHeight', 155.0, 40.0, 420.0, 'Outer height of the largest capsule'),
-            ParameterDefinition.doubleVal('cornerRadius', 46.0, 5.0, 220.0, 'Rounded corner radius before inset clamping'),
-            ParameterDefinition.doubleVal('rotationSpread', 118.0, 0.0, 180.0, 'Total angular spread across all stacks'),
-            ParameterDefinition.integer('focusCount', 5, 1, 7, 'Number of seeded construction centers that stacks orbit or bridge'),
-            ParameterDefinition.doubleVal('focusSpread', 72.0, 0.0, 100.0, 'How widely the construction centers are scattered across the page'),
-            ParameterDefinition.doubleVal('asymmetry', 62.0, 0.0, 100.0, 'How far the fitted composition may sit away from the exact page center'),
-            ParameterDefinition.doubleVal('pageFill', 92.0, 60.0, 100.0, 'How much of the safe page box the composition should occupy after fitting'),
-            ParameterDefinition.doubleVal('jitter', 70.0, 0.0, 180.0, 'Seeded translation and rotation looseness'),
-            ParameterDefinition.selection('colorMode', 'By stack', ['Single pen', 'By stack', 'Contour bands', 'Stacked passes'], 'How paths are assigned to SVG pen-color layers'),
-            ParameterDefinition.integer('colorLayers', 2, 1, 6, 'Number of plotted color layers to emit'),
-            ParameterDefinition.selection('layerPlacement', 'Interleaved gaps', ['Interleaved gaps', 'Overprint', 'Custom phase'], 'How color layers sit relative to the parallel-line spacing in circle-route mode'),
-            ParameterDefinition.doubleVal('layerPhase', 0.5, 0.0, 1.0, 'Custom color-layer phase as a fraction of line spacing; 0.5 puts a second pen in the gaps'),
-            ParameterDefinition.doubleVal('registrationOffset', 0.0, 0.0, 16.0, 'Small per-color offset for stacked multi-pen passes'),
+            modeParam(ParameterDefinition.integer('circleCount', 4, 2, 12, 'Number of randomized circles the parallel lines route around'), ['Circle route'], 'Circle count'),
+            modeParam(ParameterDefinition.doubleVal('circleDiameter', 86.0, 20.0, 220.0, 'Diameter of the invisible guide circles'), ['Circle route'], 'Circle diameter'),
+            modeParam(ParameterDefinition.selection('routeSide', 'Alternate', ['Left', 'Right', 'Alternate'], 'Which side the line bundle takes around each circle'), ['Circle route'], 'Route side'),
+            modeParam(ParameterDefinition.integer('lineCount', 16, 4, 64, 'Number of parallel routed lines in circle-route mode'), ['Circle route'], 'Line count'),
+            modeParam(ParameterDefinition.integer('pointCount', 9, 2, 28, 'Number of distributed flow points per color layer'), ['Point field'], 'Point count'),
+            modeParam(ParameterDefinition.integer('fieldContours', 13, 4, 28, 'Number of field contour lines per color layer'), ['Point field'], 'Field contours'),
+            modeParam(ParameterDefinition.integer('fieldResolution', 58, 28, 90, 'Sampling grid resolution for field contours'), ['Point field'], 'Field resolution'),
+            modeParam(ParameterDefinition.doubleVal('fieldSoftness', 42.0, 12.0, 120.0, 'Point influence radius for flowing contour fields'), ['Point field'], 'Field softness'),
+            modeParam(ParameterDefinition.selection('fieldColorMode', 'Independent layers', ['Single pen', 'Independent layers'], 'Whether point-field mode emits one pen layer or one independent field per color'), ['Point field'], 'Field color mode'),
+            modeParam(ParameterDefinition.integer('shapeCount', 6, 2, 10, 'Number of overlapping rounded-rectangle contour stacks'), ['Capsule stacks'], 'Stack count'),
+            modeParam(ParameterDefinition.integer('contourCount', 16, 4, 48, 'Number of parallel offset contours per stack'), ['Capsule stacks'], 'Contour count'),
+            modeParam(ParameterDefinition.doubleVal('spacing', 6.0, 1.0, 14.0, 'Distance between neighboring parallel lines or contours'), ['Circle route', 'Capsule stacks'], 'Line spacing'),
+            modeParam(ParameterDefinition.doubleVal('baseWidth', 560.0, 80.0, 900.0, 'Outer width of the largest capsule'), ['Capsule stacks'], 'Base width'),
+            modeParam(ParameterDefinition.doubleVal('baseHeight', 155.0, 40.0, 420.0, 'Outer height of the largest capsule'), ['Capsule stacks'], 'Base height'),
+            modeParam(ParameterDefinition.doubleVal('cornerRadius', 46.0, 5.0, 220.0, 'Rounded corner radius before inset clamping'), ['Capsule stacks'], 'Corner radius'),
+            modeParam(ParameterDefinition.doubleVal('rotationSpread', 118.0, 0.0, 180.0, 'Total angular spread across all stacks'), ['Capsule stacks'], 'Rotation spread'),
+            modeParam(ParameterDefinition.integer('focusCount', 5, 1, 7, 'Number of seeded construction centers that stacks orbit or bridge'), ['Capsule stacks'], 'Focus count'),
+            modeParam(ParameterDefinition.doubleVal('focusSpread', 72.0, 0.0, 100.0, 'How widely the construction centers are scattered across the page'), ['Capsule stacks'], 'Focus spread'),
+            modeParam(ParameterDefinition.doubleVal('asymmetry', 62.0, 0.0, 100.0, 'How far the fitted composition may sit away from the exact page center'), ['Capsule stacks'], 'Asymmetry'),
+            modeParam(ParameterDefinition.doubleVal('pageFill', 92.0, 60.0, 100.0, 'How much of the safe page box the composition should occupy after fitting'), ['Capsule stacks'], 'Page fill'),
+            modeParam(ParameterDefinition.doubleVal('jitter', 70.0, 0.0, 180.0, 'Seeded translation and rotation looseness'), ['Capsule stacks'], 'Jitter'),
+            modeParam(ParameterDefinition.selection('colorMode', 'By stack', ['Single pen', 'By stack', 'Contour bands', 'Stacked passes'], 'How capsule-stack paths are assigned to SVG pen-color layers'), ['Capsule stacks'], 'Stack color mode'),
+            modeParam(ParameterDefinition.integer('colorLayers', 2, 1, 6, 'Number of plotted color layers to emit'), ['Circle route', 'Point field', 'Capsule stacks'], 'Color layers'),
+            modeParam(ParameterDefinition.selection('layerPlacement', 'Interleaved layers', ['Single pen', 'Interleaved layers', 'Overprint layers', 'Custom phase'], 'How color layers sit relative to the parallel-line spacing in circle-route mode'), ['Circle route'], 'Layer placement'),
+            modeParam(ParameterDefinition.doubleVal('layerPhase', 0.5, 0.0, 1.0, 'Custom color-layer phase as a fraction of line spacing; 0.5 puts a second pen in the gaps'), ['Circle route'], 'Layer phase'),
+            modeParam(ParameterDefinition.doubleVal('registrationOffset', 0.0, 0.0, 16.0, 'Small per-color offset for stacked multi-pen passes'), ['Capsule stacks'], 'Registration offset'),
             ParameterDefinition.doubleVal('strokeWidth', 0.75, 0.1, 5.0, 'Preview stroke width; physical line width comes from the pen'),
             ParameterDefinition.integer('seed', 303, 1, 99999, 'Deterministic random seed'),
         ];
@@ -57,7 +65,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         fieldContours: 13,
                         fieldResolution: 58,
                         fieldSoftness: 42.0,
+                        fieldColorMode: 'Independent layers',
                         shapeCount: 6,
+                        lineCount: 16,
                         contourCount: 16,
                         spacing: 6.0,
                         baseWidth: 560.0,
@@ -71,7 +81,7 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 70.0,
                         colorMode: 'By stack',
                         colorLayers: 2,
-                        layerPlacement: 'Interleaved gaps',
+                        layerPlacement: 'Interleaved layers',
                         layerPhase: 0.5,
                         registrationOffset: 0.0,
                         strokeWidth: 0.75,
@@ -88,7 +98,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         fieldContours: 10,
                         fieldResolution: 52,
                         fieldSoftness: 48.0,
+                        fieldColorMode: 'Independent layers',
                         shapeCount: 3,
+                        lineCount: 14,
                         contourCount: 14,
                         spacing: 6.0,
                         baseWidth: 520.0,
@@ -102,7 +114,7 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 38.0,
                         colorMode: 'By stack',
                         colorLayers: 2,
-                        layerPlacement: 'Interleaved gaps',
+                        layerPlacement: 'Interleaved layers',
                         layerPhase: 0.5,
                         registrationOffset: 1.5,
                         strokeWidth: 0.8,
@@ -119,7 +131,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         fieldContours: 18,
                         fieldResolution: 68,
                         fieldSoftness: 34.0,
+                        fieldColorMode: 'Independent layers',
                         shapeCount: 5,
+                        lineCount: 24,
                         contourCount: 24,
                         spacing: 4.2,
                         baseWidth: 620.0,
@@ -133,7 +147,7 @@ export class CapsuleInterferenceGenerator extends Generator {
                         jitter: 78.0,
                         colorMode: 'Contour bands',
                         colorLayers: 4,
-                        layerPlacement: 'Interleaved gaps',
+                        layerPlacement: 'Interleaved layers',
                         layerPhase: 0.25,
                         registrationOffset: 2.0,
                         strokeWidth: 0.7,
@@ -150,7 +164,9 @@ export class CapsuleInterferenceGenerator extends Generator {
                         fieldContours: 11,
                         fieldResolution: 58,
                         fieldSoftness: 56.0,
+                        fieldColorMode: 'Independent layers',
                         shapeCount: 4,
+                        lineCount: 12,
                         contourCount: 12,
                         spacing: 8.0,
                         baseWidth: 680.0,
@@ -194,8 +210,10 @@ export class CapsuleInterferenceGenerator extends Generator {
         const fieldContours = clamp(Math.floor(numberParam(params, 'fieldContours', 13)), 4, 28);
         const fieldResolution = clamp(Math.floor(numberParam(params, 'fieldResolution', 58)), 28, 90);
         const fieldSoftness = numberParam(params, 'fieldSoftness', 42.0);
+        const fieldColorMode = typeof params.fieldColorMode === 'string' ? params.fieldColorMode : 'Independent layers';
         const shapeCount = Math.floor(numberParam(params, 'shapeCount', 6));
         const contourCount = Math.floor(numberParam(params, 'contourCount', 18));
+        const lineCount = Math.floor(numberParam(params, 'lineCount', contourCount));
         const spacing = numberParam(params, 'spacing', 5.0);
         const baseWidth = numberParam(params, 'baseWidth', 320.0);
         const baseHeight = numberParam(params, 'baseHeight', 150.0);
@@ -208,22 +226,23 @@ export class CapsuleInterferenceGenerator extends Generator {
         const jitter = numberParam(params, 'jitter', 22.0);
         const colorMode = typeof params.colorMode === 'string' ? params.colorMode : 'By stack';
         const colorLayers = clamp(Math.floor(numberParam(params, 'colorLayers', 2)), 1, 6);
-        const layerPlacement = typeof params.layerPlacement === 'string' ? params.layerPlacement : 'Interleaved gaps';
+        const layerPlacement = typeof params.layerPlacement === 'string' ? params.layerPlacement : 'Interleaved layers';
         const layerPhase = numberParam(params, 'layerPhase', 0.5);
         const registrationOffset = numberParam(params, 'registrationOffset', 0.0);
         const strokeWidth = numberParam(params, 'strokeWidth', 0.9);
         const seed = Math.floor(numberParam(params, 'seed', 303));
 
-        const canvas = new SvgCanvas(width, height, colorMode === 'Single pen' ? 1 : colorLayers);
+        const svgLayerCount = layerCountForMode(constructionMode, colorLayers, colorMode, fieldColorMode, layerPlacement);
+        const canvas = new SvgCanvas(width, height, svgLayerCount);
         canvas.layerColors = ['#F05A4A', '#1FA2E1', '#8E63CE', '#F6A11A', '#33A02C', '#6A3D9A'];
         canvas.setStrokeWidth(strokeWidth);
 
         if (constructionMode === 'Circle route') {
-            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, contourCount, spacing, routeSide, colorLayers, colorMode, layerPlacement, layerPhase, seed);
+            return generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, layerPlacement, layerPhase, seed);
         }
 
         if (constructionMode === 'Point field') {
-            return generatePointField(canvas, width, height, pointCount, fieldContours, fieldResolution, fieldSoftness, colorLayers, colorMode, seed);
+            return generatePointField(canvas, width, height, pointCount, fieldContours, fieldResolution, fieldSoftness, colorLayers, fieldColorMode, seed);
         }
 
         const paths = [];
@@ -299,15 +318,26 @@ export class CapsuleInterferenceGenerator extends Generator {
     }
 }
 
-function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, colorMode, layerPlacement, layerPhase, seed) {
-    const activeLayers = colorMode === 'Single pen' ? 1 : colorLayers;
+function layerCountForMode(constructionMode, colorLayers, stackColorMode, fieldColorMode, layerPlacement) {
+    if (constructionMode === 'Circle route') {
+        return normalizeLayerPlacement(layerPlacement) === 'Single pen' ? 1 : colorLayers;
+    }
+    if (constructionMode === 'Point field') {
+        return fieldColorMode === 'Single pen' ? 1 : colorLayers;
+    }
+    return stackColorMode === 'Single pen' ? 1 : colorLayers;
+}
+
+function generateCircleRoute(canvas, width, height, circleCount, circleDiameter, lineCount, spacing, routeSide, colorLayers, layerPlacement, layerPhase, seed) {
+    const normalizedPlacement = normalizeLayerPlacement(layerPlacement);
+    const activeLayers = normalizedPlacement === 'Single pen' ? 1 : colorLayers;
     const margin = Math.min(width, height) * 0.18;
     const records = [];
     const guideRng = mulberry32(seed + 701);
     const circles = distributedPoints(circleCount, width, height, Math.min(margin, Math.min(width, height) * 0.28), guideRng);
 
     for (let layer = 0; layer < activeLayers; layer++) {
-        const lineOffset = layerPhaseOffset(layer, activeLayers, spacing, colorMode, layerPlacement, layerPhase);
+        const lineOffset = layerPhaseOffset(layer, activeLayers, spacing, normalizedPlacement, layerPhase);
 
         for (let i = 0; i < lineCount; i++) {
             const radius = circleDiameter / 2 + i * spacing + lineOffset;
@@ -333,8 +363,14 @@ function generateCircleRoute(canvas, width, height, circleCount, circleDiameter,
     return canvas.toSvg();
 }
 
-function layerPhaseOffset(layer, activeLayers, spacing, colorMode, layerPlacement, layerPhase) {
-    if (colorMode === 'Single pen' || activeLayers <= 1 || layerPlacement === 'Overprint') return 0;
+function normalizeLayerPlacement(layerPlacement) {
+    if (layerPlacement === 'Interleaved gaps') return 'Interleaved layers';
+    if (layerPlacement === 'Overprint') return 'Overprint layers';
+    return layerPlacement;
+}
+
+function layerPhaseOffset(layer, activeLayers, spacing, layerPlacement, layerPhase) {
+    if (activeLayers <= 1 || layerPlacement === 'Overprint layers') return 0;
     if (layerPlacement === 'Custom phase') {
         return positiveModulo(layer * clamp(layerPhase, 0, 1), 1) * spacing;
     }
@@ -420,8 +456,8 @@ function positiveModulo(value, modulus) {
     return ((value % modulus) + modulus) % modulus;
 }
 
-function generatePointField(canvas, width, height, pointCount, contourCount, resolution, softness, colorLayers, colorMode, seed) {
-    const activeLayers = colorMode === 'Single pen' ? 1 : colorLayers;
+function generatePointField(canvas, width, height, pointCount, contourCount, resolution, softness, colorLayers, fieldColorMode, seed) {
+    const activeLayers = fieldColorMode === 'Single pen' ? 1 : colorLayers;
     const margin = Math.min(width, height) * 0.10;
     const stepX = (width - margin * 2) / resolution;
     const stepY = (height - margin * 2) / resolution;
@@ -637,44 +673,63 @@ function stackedOffset(layerIndex, colorMode, colorLayers, registrationOffset, s
 
 function offsetPath(path, ox, oy) {
     if (ox === 0 && oy === 0) return path;
-    return path.replace(/([ML])\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g, (_match, command, xStr, yStr) => {
-        const x = Number(xStr) + ox;
-        const y = Number(yStr) + oy;
-        return `${command} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    return path.replace(/-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?/g, (pair) => {
+        const [x, y] = pair.trim().split(/\s+/).map(Number);
+        return `${(x + ox).toFixed(2)} ${(y + oy).toFixed(2)}`;
     });
 }
 
 function roundedRectPath(cx, cy, w, h, r, angle) {
-    const pts = [];
     const hw = w / 2;
     const hh = h / 2;
+    const clampedR = Math.max(0, Math.min(r, hw, hh));
+    const parts = [];
+    const moveTo = (x, y) => {
+        const p = transformLocalPoint(x, y, cx, cy, angle);
+        parts.push(`M ${p.x.toFixed(2)} ${p.y.toFixed(2)}`);
+    };
+    const lineTo = (x, y) => {
+        const p = transformLocalPoint(x, y, cx, cy, angle);
+        parts.push(`L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`);
+    };
+    const arcTo = (arcCx, arcCy, startDeg, endDeg) => {
+        parts.push(cubicArcCommandLocal(arcCx, arcCy, clampedR, startDeg, endDeg, cx, cy, angle));
+    };
 
-    addPoint(pts, -hw + r, -hh, cx, cy, angle);
-    addPoint(pts, hw - r, -hh, cx, cy, angle);
-    addArc(pts, hw - r, -hh + r, r, -90, 0, cx, cy, angle);
-    addPoint(pts, hw, hh - r, cx, cy, angle);
-    addArc(pts, hw - r, hh - r, r, 0, 90, cx, cy, angle);
-    addPoint(pts, -hw + r, hh, cx, cy, angle);
-    addArc(pts, -hw + r, hh - r, r, 90, 180, cx, cy, angle);
-    addPoint(pts, -hw, -hh + r, cx, cy, angle);
-    addArc(pts, -hw + r, -hh + r, r, 180, 270, cx, cy, angle);
-    addPoint(pts, -hw + r, -hh, cx, cy, angle);
+    moveTo(-hw + clampedR, -hh);
+    lineTo(hw - clampedR, -hh);
+    arcTo(hw - clampedR, -hh + clampedR, -90, 0);
+    lineTo(hw, hh - clampedR);
+    arcTo(hw - clampedR, hh - clampedR, 0, 90);
+    lineTo(-hw + clampedR, hh);
+    arcTo(-hw + clampedR, hh - clampedR, 90, 180);
+    lineTo(-hw, -hh + clampedR);
+    arcTo(-hw + clampedR, -hh + clampedR, 180, 270);
+    lineTo(-hw + clampedR, -hh);
 
-    return pts.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt[0].toFixed(2)} ${pt[1].toFixed(2)}`).join(' ');
+    return parts.join(' ');
 }
 
-function addArc(pts, arcCx, arcCy, r, startDeg, endDeg, cx, cy, angle) {
-    const steps = 10;
-    for (let i = 1; i <= steps; i++) {
-        const t = (startDeg + (endDeg - startDeg) * i / steps) * Math.PI / 180;
-        addPoint(pts, arcCx + Math.cos(t) * r, arcCy + Math.sin(t) * r, cx, cy, angle);
-    }
+function cubicArcCommandLocal(arcCx, arcCy, r, startDeg, endDeg, cx, cy, angle) {
+    const start = startDeg * Math.PI / 180;
+    const end = endDeg * Math.PI / 180;
+    const delta = end - start;
+    const k = 4 / 3 * Math.tan(delta / 4);
+    const p0 = { x: arcCx + Math.cos(start) * r, y: arcCy + Math.sin(start) * r };
+    const p1 = { x: arcCx + Math.cos(end) * r, y: arcCy + Math.sin(end) * r };
+    const c1 = { x: p0.x - Math.sin(start) * r * k, y: p0.y + Math.cos(start) * r * k };
+    const c2 = { x: p1.x + Math.sin(end) * r * k, y: p1.y - Math.cos(end) * r * k };
+    const wc1 = transformLocalPoint(c1.x, c1.y, cx, cy, angle);
+    const wc2 = transformLocalPoint(c2.x, c2.y, cx, cy, angle);
+    const wp1 = transformLocalPoint(p1.x, p1.y, cx, cy, angle);
+    return `C ${wc1.x.toFixed(2)} ${wc1.y.toFixed(2)} ${wc2.x.toFixed(2)} ${wc2.y.toFixed(2)} ${wp1.x.toFixed(2)} ${wp1.y.toFixed(2)}`;
 }
 
-function addPoint(pts, x, y, cx, cy, angle) {
-    const rx = x * Math.cos(angle) - y * Math.sin(angle) + cx;
-    const ry = x * Math.sin(angle) + y * Math.cos(angle) + cy;
-    pts.push([rx, ry]);
+function transformLocalPoint(x, y, cx, cy, angle) {
+    return {
+        x: x * Math.cos(angle) - y * Math.sin(angle) + cx,
+        y: x * Math.sin(angle) + y * Math.cos(angle) + cy,
+    };
 }
 
 function clamp(value, min, max) {

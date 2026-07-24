@@ -4,49 +4,70 @@ A plotter-oriented study of parallel line bundles flowing around distributed gui
 
 ## Visual Model
 
-The default mode distributes a configurable number of invisible guide circles across the page. A bundle of parallel plotted lines routes from circle 1 to circle 2 to circle 3, and so on, then closes back to circle 1. At each circle the bundle consistently flows around the left or right side, preserving the appeal of the earlier parallel-line construction while avoiding copied/mirrored two-pivot capsule stacks.
+The default **Circle route** mode distributes invisible guide circles across the page. A bundle of parallel plotted lines routes from circle 1 to circle 2 to circle 3, and so on, then closes back to circle 1. At each circle the bundle flows around the left or right side. The default color setup keeps every pen on the same guide route family, but phase-shifts the line offsets so later pens sit in the gaps of earlier pens.
 
-In the default color setup, every pen layer shares the same guide-circle route family, but the line bundle is phase-shifted by a fraction of the line spacing. With two colors, the second pen sits halfway between the first pen's parallel lines; with three or more colors, the layers divide the gaps evenly. The older point-field isoline and rounded-rectangle constructions remain available through **constructionMode**, but the default is now **Circle route**. The SVG itself stays simple: stroked paths, no fills, no raster effects.
+The older **Point field** and **Capsule stacks** constructions remain available through **constructionMode**. The UI hides parameters that do not apply to the selected construction mode.
 
-## Parameters
+## Shared Parameters
 
 - **Preset**: Starting composition.
-- **constructionMode**: `Circle route` for parallel line bundles around guide circles, `Point field` for distributed flowing contours, or `Capsule stacks` for the earlier rounded-rectangle construction.
-- **circleCount**: Number of randomized guide circles in each route.
-- **circleDiameter**: Diameter of the invisible circles the lines flow around.
-- **routeSide**: Whether the bundle flows left, right, or alternates around successive guide circles.
-- **pointCount**: Number of distributed attractor points per color layer in point-field mode.
-- **fieldContours**: Number of isolines traced through each color field.
-- **fieldResolution**: Sampling grid resolution; higher values make smoother contours but more paths.
-- **fieldSoftness**: Influence radius around each point; higher values merge the flows more strongly.
-- **shapeCount**: Number of overlapping contour stacks in capsule-stack mode.
-- **contourCount**: Number of nested outlines in each stack.
-- **spacing**: Distance between neighboring outlines.
-- **baseWidth / baseHeight**: Outer size of the first contour.
-- **cornerRadius**: How pill-like the rounded rectangle becomes.
-- **rotationSpread**: Total angular fan across the stacks.
-- **focusCount**: Number of seeded construction centers; this avoids every variant orbiting the same two points.
-- **focusSpread**: How widely those construction centers are scattered before the final page fit.
-- **asymmetry**: Allows the fitted composition to sit away from the exact page center while staying inside margins.
-- **pageFill**: Slightly backs off the fit so asymmetry has room to move the composition.
-- **jitter**: Seeded imperfection in position, size, and rotation.
-- **colorMode**: Assign colors by stack, by contour band, as duplicated stacked passes, or as one pen.
-- **colorLayers**: Number of SVG pen layers to emit.
-- **layerPlacement**: In circle-route mode, `Interleaved gaps` puts color layers into the whitespace between neighboring parallel lines, `Overprint` draws each color on the same offsets, and `Custom phase` uses **layerPhase**.
-- **layerPhase**: Custom layer shift as a fraction of **spacing**. `0.5` puts a second color in the gap; around `0.33` works well for three colors.
-- **registrationOffset**: Optional per-color offset when using stacked duplicated passes.
-- **strokeWidth**: Preview stroke width only; the real width is your pen.
-- **seed**: Reproducible variant seed.
+- **constructionMode**: `Circle route`, `Point field`, or `Capsule stacks`.
+- **Color layers**: Number of SVG pen layers to emit where the selected mode uses multiple colors.
+- **Stroke width**: Preview stroke width only; the real width is your pen.
+- **Seed**: Reproducible variant seed.
+
+## Circle Route Parameters
+
+- **Circle count**: Number of randomized invisible guide circles.
+- **Circle diameter**: Base diameter of the circles the lines flow around.
+- **Route side**: Whether the bundle flows left, right, or alternates around successive guide circles.
+- **Line count**: Number of parallel routed lines.
+- **Line spacing**: Distance between neighboring routed lines.
+- **Layer placement**:
+  - `Single pen`: draw one layer only.
+  - `Interleaved layers`: divide the line spacing among color layers; with two colors, the second pen sits halfway into the gap.
+  - `Overprint layers`: each pen uses the same offsets.
+  - `Custom phase`: use **Layer phase**.
+- **Layer phase**: Custom layer shift as a fraction of **Line spacing**. `0.5` puts a second color in the gap; around `0.33` works well for three colors.
+
+Circle-route detours use cubic Bézier arcs rather than segmented polygons, so large circles stay visually round without needing hundreds of vertices.
+
+## Point Field Parameters
+
+- **Point count**: Number of distributed attractor points per color layer.
+- **Field contours**: Number of isolines traced through each color field.
+- **Field resolution**: Sampling grid resolution; higher values make smoother contours but more paths.
+- **Field softness**: Influence radius around each point; higher values merge the flows more strongly.
+- **Field color mode**: `Single pen` or `Independent layers`.
+
+Point-field isolines are still polyline paths generated from a sampled scalar field.
+
+## Capsule Stack Parameters
+
+- **Stack count**: Number of overlapping rounded-rectangle contour stacks.
+- **Contour count**: Number of nested outlines in each stack.
+- **Line spacing**: Distance between neighboring contours.
+- **Base width / Base height**: Outer size of the first contour.
+- **Corner radius**: How pill-like the rounded rectangle becomes.
+- **Rotation spread**: Total angular fan across the stacks.
+- **Focus count / Focus spread**: Seeded construction centers used to avoid every variant orbiting the same two points.
+- **Asymmetry**: Allows the fitted composition to sit away from the exact page center while staying inside margins.
+- **Page fill**: Slightly backs off the fit so asymmetry has room to move the composition.
+- **Jitter**: Seeded imperfection in position, size, and rotation.
+- **Stack color mode**:
+  - `Single pen`
+  - `By stack`
+  - `Contour bands`
+  - `Stacked passes`
+- **Registration offset**: Optional per-color offset when using stacked duplicated passes.
+
+Capsule-stack rounded corners now use cubic Bézier curve commands instead of segmented corner polylines.
 
 ## Plotter Notes
 
-- Default **By stack** plus **Interleaved gaps** mode draws red and blue as one shared route family with blue deliberately placed in the red gaps.
-- Use **Overprint** when you want each pen to redraw the exact same route offsets.
-- Use **Custom phase** when you want a less regular relationship than the automatic `1 / colorLayers` spacing.
-- Circle-route detours use cubic Bézier arcs rather than segmented polygons, so large circles stay visually round without needing hundreds of vertices.
-- Use **Single pen** if you want the earlier monochrome version.
-- Use **Stacked passes** only when you deliberately want every contour redrawn by several pens with a small registration shift.
-- Start with **1+1=3 Study** and A4 portrait or landscape.
-- If the drawing looks too dense, lower `contourCount` or increase `spacing`.
-- If the drawing becomes too symmetrical, increase `jitter` or change `seed`.
-- The output is intentionally plain SVG paths so `vpype` can sort and scale it cleanly.
+- Use **Circle route** + **Interleaved layers** for red/blue lines that weave through the same whitespace system.
+- Use **Overprint layers** when you want every pen to redraw the exact same route offsets.
+- Use **Stacked passes** in **Capsule stacks** only when you deliberately want every contour redrawn by several pens with a small registration shift.
+- If the circle-route drawing looks too dense, lower **Line count** or increase **Line spacing**.
+- If capsule stacks look too symmetrical, increase **Jitter** or change **Seed**.
+- The output is plain SVG paths with strokes only, so `vpype` can sort and scale it cleanly.

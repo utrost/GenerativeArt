@@ -123,11 +123,13 @@ function renderControls() {
   renderPaperSizeControl();
 
   activeGenerator.getParameterDefinitions().forEach((definition) => {
+    if (!isDefinitionVisible(definition, currentParams)) return;
+
     const group = document.createElement('div');
     group.className = 'control-group';
 
     const label = document.createElement('label');
-    label.textContent = definition.name;
+    label.textContent = definition.label || definition.name;
     if (definition.description) {
       label.title = definition.description;
     }
@@ -143,7 +145,8 @@ function renderControls() {
 
       const needsRefresh = activeGenerator.onParameterChanged(definition.name, value, currentParams);
       if (needsRefresh) {
-        updateControlsFromParams();
+        renderControls();
+        generateArt();
       } else {
         generateArt();
       }
@@ -219,6 +222,11 @@ function renderControls() {
 
     controlsContainer.appendChild(group);
   });
+}
+
+function isDefinitionVisible(definition, params) {
+  if (!definition.appliesTo || definition.appliesTo.length === 0) return true;
+  return definition.appliesTo.includes(params.constructionMode);
 }
 
 function renderPaperSizeControl() {
