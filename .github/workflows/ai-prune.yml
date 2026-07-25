@@ -1,0 +1,29 @@
+name: AI prune Markdown
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - '.ai-prune.yml'
+      - 'tools/ai-prune-markdown.py'
+      - '.github/workflows/ai-prune.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.md'
+      - '.ai-prune.yml'
+      - 'tools/ai-prune-markdown.py'
+      - '.github/workflows/ai-prune.yml'
+  workflow_dispatch:
+
+jobs:
+  ai-prune:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Scan Markdown for AI residue
+        run: python tools/ai-prune-markdown.py --github-annotations

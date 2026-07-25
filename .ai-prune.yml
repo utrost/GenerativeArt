@@ -1,0 +1,29 @@
+mode: docs
+paths:
+  - **/*.md
+exclude:
+  - node_modules/**
+  - dist/**
+  - build/**
+  - public/**
+  - coverage/**
+  - .git/**
+  - .venv/**
+  - vendor/**
+fail_on:
+  - chatbot_artifacts
+  - citation_leaks
+  - ai_url_params
+  - private_name_leaks
+warn_on:
+  - placeholders
+  - ai_vocabulary
+  - em_dash_density
+  - decorative_bold
+  - generated_scaffolding
+  - manifesto_cadence
+private_names:
+  - Annette
+  - Martha
+  - Marta
+max_warnings: 0
