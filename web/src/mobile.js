@@ -21,6 +21,7 @@ import { ChladniPatternGenerator } from './generators/ChladniPatternGenerator';
 import { CelticKnotGenerator } from './generators/CelticKnotGenerator';
 import { ContourMapGenerator } from './generators/ContourMapGenerator';
 import { CapsuleInterferenceGenerator } from './generators/CapsuleInterferenceGenerator';
+import { FoldedCrystalGenerator } from './generators/FoldedCrystalGenerator';
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
 import { registerServiceWorker } from './registerServiceWorker.js';
@@ -49,6 +50,7 @@ const generators = [
   new CelticKnotGenerator(),
   new ContourMapGenerator(),
   new CapsuleInterferenceGenerator(),
+  new FoldedCrystalGenerator(),
 ];
 
 let activeGenerator = generators[0];

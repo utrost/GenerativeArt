@@ -23,6 +23,7 @@ import { ChladniPatternGenerator } from './ChladniPatternGenerator.js';
 import { CelticKnotGenerator } from './CelticKnotGenerator.js';
 import { ContourMapGenerator } from './ContourMapGenerator.js';
 import { CapsuleInterferenceGenerator } from './CapsuleInterferenceGenerator.js';
+import { FoldedCrystalGenerator } from './FoldedCrystalGenerator.js';
 
 const allGenerators = [
     new GenerativeRibbon(),
@@ -48,6 +49,7 @@ const allGenerators = [
     new CelticKnotGenerator(),
     new ContourMapGenerator(),
     new CapsuleInterferenceGenerator(),
+    new FoldedCrystalGenerator(),
 ];
 
 function buildDefaultParams(generator) {
