@@ -77,4 +77,13 @@ describe('service worker cache', () => {
     expect(source).toContain('self.addEventListener(\'activate\'');
     expect(source).toContain('self.addEventListener(\'fetch\'');
   });
+
+  it('uses network-first handling for app-shell HTML so deployed generators are not hidden by stale caches', () => {
+    const source = readText('public/sw.js');
+
+    expect(source).toContain('function isAppShellRequest');
+    expect(source).toContain('function networkFirst');
+    expect(source).toContain('event.respondWith(networkFirst(event.request));');
+    expect(source.indexOf('return fetch(request)')).toBeLessThan(source.indexOf('return caches.match(request)'));
+  });
 });

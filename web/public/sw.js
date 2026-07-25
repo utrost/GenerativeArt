@@ -1,4 +1,4 @@
-const CACHE_NAME = 'genart-pwa-v1';
+const CACHE_NAME = 'genart-pwa-v2';
 const APP_SHELL = [
   '/genart/',
   '/genart/mobile.html',
@@ -27,25 +27,50 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function isGenArtRequest(request) {
+  return new URL(request.url).pathname.startsWith('/genart/');
+}
+
+function isAppShellRequest(request) {
+  const path = new URL(request.url).pathname;
+  return request.mode === 'navigate'
+    || path === '/genart/'
+    || path === '/genart/index.html'
+    || path === '/genart/mobile.html';
+}
+
+function putInCache(request, response) {
+  if (!response || !response.ok || !isGenArtRequest(request)) return Promise.resolve();
+
+  return caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+}
+
+function networkFirst(request) {
+  return fetch(request)
+    .then((networkResponse) => {
+      putInCache(request, networkResponse);
+      return networkResponse;
+    })
+    .catch(() => caches.match(request));
+}
+
+function cacheFirst(request) {
+  return caches.match(request).then((cachedResponse) => {
+    if (cachedResponse) return cachedResponse;
+
+    return fetch(request).then((networkResponse) => {
+      putInCache(request, networkResponse);
+      return networkResponse;
+    });
+  });
+}
+
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  if (event.request.method !== 'GET' || !isGenArtRequest(event.request)) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
+  if (isAppShellRequest(event.request)) {
+    return event.respondWith(networkFirst(event.request));
+  }
 
-      return fetch(event.request).then((networkResponse) => {
-        const shouldCache = networkResponse
-          && networkResponse.ok
-          && new URL(event.request.url).pathname.startsWith('/genart/');
-
-        if (shouldCache) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-        }
-
-        return networkResponse;
-      });
-    }),
-  );
+  event.respondWith(cacheFirst(event.request));
 });
