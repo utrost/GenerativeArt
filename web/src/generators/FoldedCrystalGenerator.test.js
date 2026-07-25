@@ -60,6 +60,29 @@ describe('FoldedCrystalGenerator', () => {
     expect(svg).not.toContain('opacity');
   });
 
+  it('adds explicit 3D shading controls and weighted shadow/highlight passes', () => {
+    const generator = new FoldedCrystalGenerator();
+    const definitions = Object.fromEntries(generator.getParameterDefinitions().map((definition) => [definition.name, definition]));
+
+    expect(definitions['Shade Bands'].description).toContain('plastic');
+    expect(definitions['Shadow Crosshatch'].description).toContain('darkest facets');
+    expect(definitions['Highlight Dropout'].description).toContain('lightest facets');
+
+    const svg = generator.generate(paramsFor(generator, {
+      'Split Count': 34,
+      'Color Mode': 'Three layer',
+      'Shade Bands': 6,
+      'Shadow Crosshatch': 0.9,
+      'Highlight Dropout': 0.4,
+      'Seed': 321,
+    }));
+
+    expect(svg).toContain('data-shade-band=');
+    expect(svg).toContain('data-shadow-pass=');
+    expect(svg).toContain('data-highlight-pass=');
+    expect(layerPathCount(svg, 'layer_3')).toBeGreaterThan(layerPathCount(svg, 'layer_1') * 0.25);
+  });
+
   it('is deterministic for the same seed', () => {
     const generator = new FoldedCrystalGenerator();
     const params = paramsFor(generator, { 'Seed': 999, 'Split Count': 16 });

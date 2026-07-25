@@ -28,6 +28,9 @@ export class FoldedCrystalGenerator extends Generator {
             ParameterDefinition.doubleVal('Hatch Dark Spacing', 3.0, 1.0, 12.0, 'Line spacing for dark facets'),
             ParameterDefinition.doubleVal('Light Angle', 315.0, 0.0, 360.0, 'Direction of the fake light used to select hatch density and pen layer'),
             ParameterDefinition.doubleVal('Contrast', 1.25, 0.2, 3.0, 'How strongly light direction changes hatch spacing'),
+            ParameterDefinition.integer('Shade Bands', 5, 2, 9, 'Discrete plastic shading bands: fewer bands make the faceted 3D planes read more clearly'),
+            ParameterDefinition.doubleVal('Shadow Crosshatch', 0.65, 0.0, 1.0, 'Extra crosshatch strength on the darkest facets'),
+            ParameterDefinition.doubleVal('Highlight Dropout', 0.25, 0.0, 0.8, 'Line removal on the lightest facets to create bright highlights'),
             ParameterDefinition.selection('Color Mode', 'Magenta/Violet', ['Single pen', 'Magenta/Violet', 'Three layer'], 'Use real plotter pen layers, never fake opacity'),
             ParameterDefinition.selection('Outline Mode', 'All shared edges', ['All shared edges', 'Outer only', 'None'], 'Which facet seams to draw as a separate outline pass'),
             ParameterDefinition.doubleVal('Stroke Width', 0.65, 0.1, 2.5, 'SVG preview stroke width'),
@@ -50,6 +53,9 @@ export class FoldedCrystalGenerator extends Generator {
                     'Hatch Dark Spacing': 3.0,
                     'Light Angle': 315.0,
                     'Contrast': 1.25,
+                    'Shade Bands': 5,
+                    'Shadow Crosshatch': 0.65,
+                    'Highlight Dropout': 0.25,
                     'Color Mode': 'Magenta/Violet',
                     'Outline Mode': 'All shared edges',
                 },
@@ -65,6 +71,9 @@ export class FoldedCrystalGenerator extends Generator {
                     'Hatch Dark Spacing': 3.5,
                     'Light Angle': 300.0,
                     'Contrast': 1.1,
+                    'Shade Bands': 4,
+                    'Shadow Crosshatch': 0.4,
+                    'Highlight Dropout': 0.35,
                     'Color Mode': 'Single pen',
                     'Outline Mode': 'All shared edges',
                 },
@@ -80,6 +89,9 @@ export class FoldedCrystalGenerator extends Generator {
                     'Hatch Dark Spacing': 2.2,
                     'Light Angle': 335.0,
                     'Contrast': 1.8,
+                    'Shade Bands': 7,
+                    'Shadow Crosshatch': 0.9,
+                    'Highlight Dropout': 0.1,
                     'Color Mode': 'Three layer',
                     'Outline Mode': 'All shared edges',
                 },
@@ -95,6 +107,9 @@ export class FoldedCrystalGenerator extends Generator {
                     'Hatch Dark Spacing': 5.0,
                     'Light Angle': 285.0,
                     'Contrast': 0.8,
+                    'Shade Bands': 3,
+                    'Shadow Crosshatch': 0.25,
+                    'Highlight Dropout': 0.45,
                     'Color Mode': 'Single pen',
                     'Outline Mode': 'Outer only',
                 },
@@ -143,23 +158,37 @@ export class FoldedCrystalGenerator extends Generator {
         const contrast = params['Contrast'] || 1.25;
         const lightSpacing = params['Hatch Light Spacing'] || 9;
         const darkSpacing = params['Hatch Dark Spacing'] || 3;
+        const shadeBands = params['Shade Bands'] || 5;
+        const shadowCrosshatch = params['Shadow Crosshatch'] ?? 0.65;
+        const highlightDropout = params['Highlight Dropout'] ?? 0.25;
 
         for (const [index, face] of faces.entries()) {
             const centroid = this.centroid(face);
             const angleFamily = this.faceAngle(face, centroid, index, random);
-            const shade = this.clamp(0.5 + contrast * 0.5 * (Math.cos(angleFamily) * light.x + Math.sin(angleFamily) * light.y), 0, 1);
-            const spacing = darkSpacing + (lightSpacing - darkSpacing) * shade;
+            const shade = this.quantizedShade(this.faceShade(face, centroid, angleFamily, light, width, height, contrast), shadeBands);
+            const darkness = 1 - shade;
+            const spacing = darkSpacing + (lightSpacing - darkSpacing) * Math.pow(shade, 1.35);
             const hatchAngle = angleFamily + Math.PI / 2 + this.degToRad((random.nextDouble() - 0.5) * 14);
             const hatchLayer = this.layerForShade(shade, colorMode);
             const segments = this.hatchPolygon(face, hatchAngle, spacing);
-            for (const segment of segments) {
-                canvas.addPath(hatchLayer, this.pathFromSegment(segment));
+            const keptSegments = this.applyHighlightDropout(segments, shade, highlightDropout, index);
+            for (const segment of keptSegments) {
+                canvas.addPath(hatchLayer, this.pathFromSegment(segment, { shadeBand: this.shadeBand(shade, shadeBands) }));
             }
 
-            if (colorMode === 'Three layer' && shade < 0.34) {
-                const crossSegments = this.hatchPolygon(face, hatchAngle + this.degToRad(72), spacing * 1.7);
+            if (shade > 0.78 && highlightDropout > 0) {
+                const highlightSegments = this.hatchPolygon(face, hatchAngle, spacing * 2.6).filter((_, segmentIndex) => segmentIndex % 3 === 0);
+                for (const segment of highlightSegments) {
+                    canvas.addPath(0, this.pathFromSegment(segment, { highlightPass: true, shadeBand: this.shadeBand(shade, shadeBands) }));
+                }
+            }
+
+            if (darkness > 0.48 && shadowCrosshatch > 0) {
+                const crossSpacing = spacing * (1.15 + (1 - shadowCrosshatch) * 1.4);
+                const crossSegments = this.hatchPolygon(face, hatchAngle + this.degToRad(64 + 18 * darkness), crossSpacing);
+                const shadowLayer = colorMode === 'Three layer' ? 2 : hatchLayer;
                 for (const segment of crossSegments) {
-                    canvas.addPath(2, this.pathFromSegment(segment));
+                    canvas.addPath(shadowLayer, this.pathFromSegment(segment, { shadowPass: true, shadeBand: this.shadeBand(shade, shadeBands) }));
                 }
             }
         }
@@ -335,6 +364,36 @@ export class FoldedCrystalGenerator extends Generator {
         return Array.from({ length: layerCount }, (_, index) => ['black', '#E31A1C', '#1F78B4', '#33A02C'][index % 4]);
     }
 
+    faceShade(face, centroid, angleFamily, light, width, height, contrast) {
+        const edgeNormal = { x: Math.cos(angleFamily), y: Math.sin(angleFamily) };
+        const rx = (centroid.x - width * 0.5) / width;
+        const ry = (centroid.y - height * 0.5) / height;
+        const radial = this.normalize({ x: edgeNormal.x * 0.7 + rx * 1.8, y: edgeNormal.y * 0.7 + ry * 1.8 });
+        const areaTone = this.clamp(Math.sqrt(Math.abs(this.area(face)) / (width * height)) * 3.5, 0, 0.35);
+        const dot = radial.x * light.x + radial.y * light.y;
+        return this.clamp(0.5 + contrast * 0.5 * dot + areaTone - 0.12, 0, 1);
+    }
+
+    quantizedShade(shade, bands) {
+        if (bands <= 1) return shade;
+        return Math.round(this.clamp(shade, 0, 1) * (bands - 1)) / (bands - 1);
+    }
+
+    shadeBand(shade, bands) {
+        return Math.round(this.clamp(shade, 0, 1) * (bands - 1));
+    }
+
+    applyHighlightDropout(segments, shade, highlightDropout, faceIndex) {
+        if (shade < 0.72 || highlightDropout <= 0) return segments;
+        const skipModulo = Math.max(2, Math.round(1 / highlightDropout));
+        return segments.filter((_, segmentIndex) => (segmentIndex + faceIndex) % skipModulo !== 0);
+    }
+
+    normalize(vector) {
+        const length = Math.hypot(vector.x, vector.y) || 1;
+        return { x: vector.x / length, y: vector.y / length };
+    }
+
     collectEdges(faces, outlineMode) {
         const edges = new Map();
         for (const face of faces) {
@@ -358,8 +417,13 @@ export class FoldedCrystalGenerator extends Generator {
         return pa < pb ? `${pa}|${pb}` : `${pb}|${pa}`;
     }
 
-    pathFromSegment([a, b]) {
-        return `<path d='M ${a.x.toFixed(2)} ${a.y.toFixed(2)} L ${b.x.toFixed(2)} ${b.y.toFixed(2)}' />`;
+    pathFromSegment([a, b], metadata = {}) {
+        const attrs = [];
+        if (metadata.shadeBand !== undefined) attrs.push(`data-shade-band='${metadata.shadeBand}'`);
+        if (metadata.shadowPass) attrs.push("data-shadow-pass='true'");
+        if (metadata.highlightPass) attrs.push("data-highlight-pass='true'");
+        const attrText = attrs.length ? ` ${attrs.join(' ')}` : '';
+        return `<path d='M ${a.x.toFixed(2)} ${a.y.toFixed(2)} L ${b.x.toFixed(2)} ${b.y.toFixed(2)}'${attrText} />`;
     }
 
     faceAngle(face, centroid, index, random) {

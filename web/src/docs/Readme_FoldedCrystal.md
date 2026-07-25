@@ -6,9 +6,11 @@ Folded Crystal generates an irregular cluster of polygon facets, then fills ever
 
 1. Build a tall irregular boundary from seeded radial points.
 2. Recursively split the boundary into shared polygon faces.
-3. Assign each face a fake lighting value from its edge direction and the light angle.
-4. Generate parallel hatch lines for each face and clip those lines to the polygon.
-5. Draw selected facet edges as a separate outline layer.
+3. Assign each face a fake lighting value from its edge direction, position, size, and the light angle.
+4. Quantize the lighting into shade bands so neighbouring planes read as a more plastic 3D surface.
+5. Generate parallel hatch lines for each face and clip those lines to the polygon.
+6. Drop lines on bright faces and add crosshatching on dark faces for stronger shadow modelling.
+7. Draw selected facet edges as a separate outline layer.
 
 The result is closer to folded paper, faceted cloth, or a low-poly crystal than to a regular tiling.
 
@@ -19,6 +21,7 @@ The result is closer to folded paper, faceted cloth, or a low-poly crystal than 
 - Use **Three layer** when you want the darkest facets to get a separate shadow/crosshatch pass.
 - Plot outlines last if your plotting workflow preserves SVG layer order.
 - If the drawing is too dark, raise **Hatch Dark Spacing** or lower **Contrast**.
+- If it feels too flat, raise **Contrast**, **Shade Bands**, or **Shadow Crosshatch**.
 - If it looks too regular, raise **Irregularity**, **Protrusions**, or **Angle Jitter**.
 
 ## Parameters
@@ -33,6 +36,9 @@ The result is closer to folded paper, faceted cloth, or a low-poly crystal than 
 - **Hatch Light Spacing / Hatch Dark Spacing**: line spacing range for light and shadow facets.
 - **Light Angle**: fake light direction used to choose density and pen layer.
 - **Contrast**: strength of the light/shadow mapping.
+- **Shade Bands**: number of discrete tone levels; lower values make broader folded planes, higher values make finer shading.
+- **Shadow Crosshatch**: amount of second-pass hatching on the darkest faces.
+- **Highlight Dropout**: how many hatch lines are removed from the brightest faces.
 - **Color Mode**: physical pen-layer strategy.
 - **Outline Mode**: seam drawing strategy.
 - **Stroke Width**: SVG preview stroke width.
