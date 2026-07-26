@@ -1,4 +1,4 @@
-const CACHE_NAME = 'genart-pwa-v2';
+const CACHE_NAME = 'genart-pwa-v3';
 const APP_SHELL = [
   '/genart/',
   '/genart/mobile.html',

@@ -12,7 +12,7 @@ The former Java/Swing application has been retired to keep the generator code in
 
 ## Available Generators
 
-The framework currently includes **23 generative algorithms**:
+The framework currently includes **25 generative algorithms**:
 
 1. **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
 2. **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
@@ -37,6 +37,8 @@ The framework currently includes **23 generative algorithms**:
 21. **Celtic Knot**: Interlaced knotwork patterns inspired by Celtic art traditions.
 22. **Contour Map**: Topographic contour lines from procedural noise landscapes.
 23. **Capsule Interference**: Overlapping rounded-rectangle contour stacks for plotter studies.
+24. **Folded Crystal**: Faceted polygon clusters with clipped hatch shading and plotter-native shadows.
+25. **Crumpled Mesh**: Warped wireframe relief sheets inspired by technical-pen plotter studies.
 
 ---
 

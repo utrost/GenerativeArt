@@ -24,6 +24,7 @@ import { CelticKnotGenerator } from './CelticKnotGenerator.js';
 import { ContourMapGenerator } from './ContourMapGenerator.js';
 import { CapsuleInterferenceGenerator } from './CapsuleInterferenceGenerator.js';
 import { FoldedCrystalGenerator } from './FoldedCrystalGenerator.js';
+import { CrumpledMeshGenerator } from './CrumpledMeshGenerator.js';
 
 const allGenerators = [
     new GenerativeRibbon(),
@@ -50,6 +51,7 @@ const allGenerators = [
     new ContourMapGenerator(),
     new CapsuleInterferenceGenerator(),
     new FoldedCrystalGenerator(),
+    new CrumpledMeshGenerator(),
 ];
 
 function buildDefaultParams(generator) {

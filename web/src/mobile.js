@@ -22,6 +22,7 @@ import { CelticKnotGenerator } from './generators/CelticKnotGenerator';
 import { ContourMapGenerator } from './generators/ContourMapGenerator';
 import { CapsuleInterferenceGenerator } from './generators/CapsuleInterferenceGenerator';
 import { FoldedCrystalGenerator } from './generators/FoldedCrystalGenerator';
+import { CrumpledMeshGenerator } from './generators/CrumpledMeshGenerator';
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
 import { registerServiceWorker } from './registerServiceWorker.js';
@@ -51,6 +52,7 @@ const generators = [
   new ContourMapGenerator(),
   new CapsuleInterferenceGenerator(),
   new FoldedCrystalGenerator(),
+  new CrumpledMeshGenerator(),
 ];
 
 let activeGenerator = generators[0];
