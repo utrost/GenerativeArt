@@ -17,8 +17,8 @@ export class CrumpledMeshGenerator extends Generator {
     getParameterDefinitions() {
         return [
             ParameterDefinition.selection('Preset', 'Rotring sheet', ['Custom', 'Rotring sheet', 'Tall relief', 'Dense wireframe', 'Quiet terrain'], 'Choose a starting point for the warped mesh surface'),
-            ParameterDefinition.integer('Grid Rows', 70, 24, 140, 'Number of horizontal mesh lines'),
-            ParameterDefinition.integer('Grid Columns', 92, 24, 170, 'Number of vertical mesh lines'),
+            ParameterDefinition.integer('Grid Rows', 70, 24, 260, 'Number of horizontal mesh lines; primary control for mesh density'),
+            ParameterDefinition.integer('Grid Columns', 92, 24, 320, 'Number of vertical mesh lines; primary control for mesh density'),
             ParameterDefinition.doubleVal('Sheet Width', 0.78, 0.35, 0.96, 'Fraction of page width used before projection'),
             ParameterDefinition.doubleVal('Sheet Height', 0.72, 0.35, 0.96, 'Fraction of page height used before projection'),
             ParameterDefinition.doubleVal('Surface Height', 92.0, 0.0, 180.0, 'Maximum projected height displacement'),
@@ -30,8 +30,8 @@ export class CrumpledMeshGenerator extends Generator {
             ParameterDefinition.doubleVal('Vertical Compression', 0.82, 0.45, 1.2, 'Perspective-like compression of the sheet depth'),
             ParameterDefinition.doubleVal('Boundary Irregularity', 0.18, 0.0, 0.55, 'Torn-edge irregularity of the sheet boundary'),
             ParameterDefinition.doubleVal('Shadow Threshold', 0.56, 0.0, 1.0, 'Slope threshold for sending darker mesh segments to the shadow layer'),
-            ParameterDefinition.doubleVal('Row Density', 1.0, 0.15, 1.0, 'Fraction of row lines to draw; lower values plot faster'),
-            ParameterDefinition.doubleVal('Column Density', 1.0, 0.15, 1.0, 'Fraction of column lines to draw; lower values plot faster'),
+            ParameterDefinition.doubleVal('Row Draw Fraction', 1.0, 0.15, 1.0, 'Fraction of generated row lines to keep; lower values thin the mesh and plot faster'),
+            ParameterDefinition.doubleVal('Column Draw Fraction', 1.0, 0.15, 1.0, 'Fraction of generated column lines to keep; lower values thin the mesh and plot faster'),
             ParameterDefinition.selection('Layer Mode', 'Mesh + shadow', ['Single pen', 'Mesh + shadow', 'Three pass'], 'Plotter layer strategy for mesh and darker ridge/shadow passes'),
             ParameterDefinition.doubleVal('Stroke Width', 0.38, 0.1, 1.5, 'SVG preview stroke width'),
             ParameterDefinition.integer('Seed', 31415, 1, 999999, 'Random seed for reproducible variants'),
@@ -55,8 +55,8 @@ export class CrumpledMeshGenerator extends Generator {
                     'Vertical Compression': 0.82,
                     'Boundary Irregularity': 0.18,
                     'Shadow Threshold': 0.56,
-                    'Row Density': 1.0,
-                    'Column Density': 1.0,
+                    'Row Draw Fraction': 1.0,
+                    'Column Draw Fraction': 1.0,
                     'Layer Mode': 'Mesh + shadow',
                 },
                 'Tall relief': {
@@ -73,8 +73,8 @@ export class CrumpledMeshGenerator extends Generator {
                     'Vertical Compression': 0.76,
                     'Boundary Irregularity': 0.26,
                     'Shadow Threshold': 0.50,
-                    'Row Density': 0.92,
-                    'Column Density': 0.92,
+                    'Row Draw Fraction': 0.92,
+                    'Column Draw Fraction': 0.92,
                     'Layer Mode': 'Three pass',
                 },
                 'Dense wireframe': {
@@ -91,8 +91,8 @@ export class CrumpledMeshGenerator extends Generator {
                     'Vertical Compression': 0.84,
                     'Boundary Irregularity': 0.22,
                     'Shadow Threshold': 0.46,
-                    'Row Density': 1.0,
-                    'Column Density': 1.0,
+                    'Row Draw Fraction': 1.0,
+                    'Column Draw Fraction': 1.0,
                     'Layer Mode': 'Mesh + shadow',
                 },
                 'Quiet terrain': {
@@ -109,8 +109,8 @@ export class CrumpledMeshGenerator extends Generator {
                     'Vertical Compression': 0.90,
                     'Boundary Irregularity': 0.10,
                     'Shadow Threshold': 0.72,
-                    'Row Density': 0.82,
-                    'Column Density': 0.82,
+                    'Row Draw Fraction': 0.82,
+                    'Column Draw Fraction': 0.82,
                     'Layer Mode': 'Single pen',
                 },
             };
@@ -146,8 +146,8 @@ export class CrumpledMeshGenerator extends Generator {
         const projectionAngle = this.degToRad(params['Projection Angle'] || 312);
         const verticalCompression = params['Vertical Compression'] || 0.82;
         const shadowThreshold = params['Shadow Threshold'] ?? 0.56;
-        const rowDensity = params['Row Density'] ?? 1.0;
-        const columnDensity = params['Column Density'] ?? 1.0;
+        const rowDensity = params['Row Draw Fraction'] ?? params['Row Density'] ?? 1.0;
+        const columnDensity = params['Column Draw Fraction'] ?? params['Column Density'] ?? 1.0;
 
         const folds = this.createFolds(params['Fold Count'] || 9, random);
         const boundary = this.createBoundary(params['Boundary Irregularity'] ?? 0.18, random);

@@ -21,7 +21,8 @@ The output uses paths only: no fills, no opacity, no raster shading. Tone comes 
 
 - **Rotring sheet** is the closest preset to the reference: dense but still practical.
 - **Dense wireframe** can become slow to plot. Use it for smaller paper or patient days.
-- Lower **Row Density** or **Column Density** if plotting time gets silly.
+- Increase **Grid Rows** and **Grid Columns** for a denser mesh. These are the real density controls.
+- Lower **Row Draw Fraction** or **Column Draw Fraction** if plotting time gets silly; those only skip generated lines.
 - Use **Single pen** for a clean black technical-pen study.
 - Use **Mesh + shadow** when you want darker ridge areas to be separable as a second pass.
 - Use **Three pass** only when you want a visibly heavier shadow structure.
@@ -31,7 +32,7 @@ The output uses paths only: no fills, no opacity, no raster shading. Tone comes 
 ## Parameters
 
 - **Preset**: starting configuration.
-- **Grid Rows / Grid Columns**: mesh density.
+- **Grid Rows / Grid Columns**: mesh density. Higher values create more horizontal/vertical line families.
 - **Sheet Width / Sheet Height**: pre-projection surface size.
 - **Surface Height**: how far height moves the projected mesh.
 - **Fold Count**: number of sharp ridges and dents.
@@ -42,7 +43,7 @@ The output uses paths only: no fills, no opacity, no raster shading. Tone comes 
 - **Vertical Compression**: perspective-like compression of sheet depth.
 - **Boundary Irregularity**: torn-edge wobble.
 - **Shadow Threshold**: slope cutoff for shadow layers.
-- **Row Density / Column Density**: line skipping controls for plotting time.
+- **Row Draw Fraction / Column Draw Fraction**: line skipping controls for plotting time. They do not add more mesh; they only remove generated lines.
 - **Layer Mode**: single pen, mesh plus shadow, or three pass.
 - **Stroke Width**: SVG preview stroke width.
 - **Seed**: reproducible random seed.
