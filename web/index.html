@@ -26,7 +26,14 @@
           <h1>GenArt</h1>
           <a href="https://simiono.com/Generative-Art" class="garden-link" title="Read about this project">by simiono</a>
         </div>
-        <div id="generator-list" class="generator-list">
+        <div class="generator-library" aria-label="Generator library">
+          <input id="generator-search" class="generator-search" type="search" placeholder="Search generators, tags, styles…" autocomplete="off" />
+          <div id="generator-category-filters" class="category-filters" aria-label="Generator categories"></div>
+          <button id="btn-random-generator" class="secondary-btn random-generator-btn" type="button">Random from filter</button>
+          <div id="generator-favorites" class="quick-generator-section"></div>
+          <div id="generator-recent" class="quick-generator-section"></div>
+        </div>
+        <div class="generator-list" id="generator-list">
           <!-- Populated by JS -->
         </div>
       </nav>

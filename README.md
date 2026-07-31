@@ -12,7 +12,7 @@ The former Java/Swing application has been retired to keep the generator code in
 
 ## Available Generators
 
-The framework currently includes **25 generative algorithms**:
+The framework currently includes **32 generative algorithms**:
 
 1. **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
 2. **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
@@ -39,6 +39,13 @@ The framework currently includes **25 generative algorithms**:
 23. **Capsule Interference**: Overlapping rounded-rectangle contour stacks for plotter studies.
 24. **Folded Crystal**: Faceted polygon clusters with clipped hatch shading and plotter-native shadows.
 25. **Crumpled Mesh**: Warped wireframe relief sheets inspired by technical-pen plotter studies.
+26. **Fault Lines**: Geological contour fields sheared by tectonic cracks and stress ticks.
+27. **Thread Loom**: Sagging thread curves woven between edge anchors through invisible fields.
+28. **Botanical Circuit**: Plant-like branching constrained by PCB-style routing, pads, and vias.
+29. **Paper Memory**: Recent and ghost paper creases with sparse rubbing marks.
+30. **Mechanical Rain**: Falling trajectories deflected by pins, paddles, wind, and splash marks.
+31. **Archive Shards**: Fragmented document rectangles clustered by hidden metadata axes and links.
+32. **Resonant Topography**: Topographic contours broken by standing-wave resonance nodes.
 
 ---
 
@@ -109,6 +116,18 @@ npm run build
 ```
 
 The static output is written to `web/dist/`.
+
+### Generator library
+
+The app uses a shared generator registry for desktop and mobile selection. Search matches generator names, tags, categories, and descriptions. Category chips narrow the library by visual family, while **Favorites** and **Recent** are stored locally in the browser so frequently used plotter studies stay close at hand. Desktop shows the library in the left sidebar; mobile opens the same library as a searchable bottom sheet instead of a long native dropdown.
+
+Useful controls:
+
+- **Search:** find by terms such as `plotter`, `contour`, `metadata`, `thread`, or `resonance`.
+- **Categories:** switch between line fields, geometry, organic systems, math/physics, constructed systems, and plotter studies.
+- **Favorites:** star generators to pin them near the top.
+- **Recent:** the last selected generators are kept for quick return.
+- **Random from filter:** choose a random generator from the current search/category result.
 
 ---
 

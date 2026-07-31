@@ -1,59 +1,21 @@
-import { GenerativeRibbon } from './generators/GenerativeRibbon';
-import { FlowFieldGenerator } from './generators/FlowFieldGenerator';
-import { CirclePackingGenerator } from './generators/CirclePackingGenerator';
-import { LSystemGenerator } from './generators/LSystemGenerator';
-import { ReactionDiffusionGenerator } from './generators/ReactionDiffusionGenerator';
-import { HarmonographGenerator } from './generators/HarmonographGenerator';
-import { PhyllotaxisGenerator } from './generators/PhyllotaxisGenerator';
-import { StrangeAttractorsGenerator } from './generators/StrangeAttractorsGenerator';
-import { TruchetTilesGenerator } from './generators/TruchetTilesGenerator';
-import { TwistedMoireGenerator } from './generators/TwistedMoireGenerator';
-import { VoronoiRipplesGenerator } from './generators/VoronoiRipplesGenerator';
-import { PipeNetworkGenerator } from './generators/PipeNetworkGenerator';
-import { ParametricGridGenerator } from './generators/ParametricGridGenerator';
-import { MagneticFieldGenerator } from './generators/MagneticFieldGenerator';
-import { FourierSeriesGenerator } from './generators/FourierSeriesGenerator';
-import { MazeGenerator } from './generators/MazeGenerator';
-import { SpirographGenerator } from './generators/SpirographGenerator';
-import { PenroseTilingGenerator } from './generators/PenroseTilingGenerator';
-import { WaveInterferenceGenerator } from './generators/WaveInterferenceGenerator';
-import { ChladniPatternGenerator } from './generators/ChladniPatternGenerator';
-import { CelticKnotGenerator } from './generators/CelticKnotGenerator';
-import { ContourMapGenerator } from './generators/ContourMapGenerator';
-import { CapsuleInterferenceGenerator } from './generators/CapsuleInterferenceGenerator';
-import { FoldedCrystalGenerator } from './generators/FoldedCrystalGenerator';
-import { CrumpledMeshGenerator } from './generators/CrumpledMeshGenerator';
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
 import { registerServiceWorker } from './registerServiceWorker.js';
+import {
+  CATEGORY_LABELS,
+  createGeneratorInstances,
+  filterGeneratorEntries,
+  generatorRegistry,
+  getFavoriteGeneratorIds,
+  getRecentGeneratorIds,
+  rememberRecentGeneratorId,
+  toggleFavoriteGeneratorId,
+} from './generators/generatorRegistry.js';
 
-const generators = [
-  new GenerativeRibbon(),
-  new FlowFieldGenerator(),
-  new CirclePackingGenerator(),
-  new LSystemGenerator(),
-  new ReactionDiffusionGenerator(),
-  new HarmonographGenerator(),
-  new PhyllotaxisGenerator(),
-  new StrangeAttractorsGenerator(),
-  new TruchetTilesGenerator(),
-  new TwistedMoireGenerator(),
-  new VoronoiRipplesGenerator(),
-  new PipeNetworkGenerator(),
-  new ParametricGridGenerator(),
-  new MagneticFieldGenerator(),
-  new FourierSeriesGenerator(),
-  new MazeGenerator(),
-  new SpirographGenerator(),
-  new PenroseTilingGenerator(),
-  new WaveInterferenceGenerator(),
-  new ChladniPatternGenerator(),
-  new CelticKnotGenerator(),
-  new ContourMapGenerator(),
-  new CapsuleInterferenceGenerator(),
-  new FoldedCrystalGenerator(),
-  new CrumpledMeshGenerator(),
-];
+const generators = createGeneratorInstances();
+const generatorsById = new Map(generators.map((generator) => [generator.getId(), generator]));
+let generatorQuery = '';
+let generatorCategory = 'All';
 
 let activeGenerator = generators[0];
 let currentParams = {};
@@ -61,7 +23,14 @@ let currentPaperSize = 'SCREEN_1000';
 let inputElements = {};
 let isUpdatingUI = false;
 
-const generatorSelect = document.getElementById('mobile-generator-select');
+const generatorPickerBtn = document.getElementById('btn-mobile-generator-picker');
+const generatorLabel = document.getElementById('mobile-current-generator-label');
+const closeGeneratorPickerBtn = document.getElementById('btn-mobile-close-generator-picker');
+const generatorSheet = document.getElementById('mobile-generator-sheet');
+const generatorSearch = document.getElementById('mobile-generator-search');
+const generatorCategoryFilters = document.getElementById('mobile-generator-category-filters');
+const generatorQuick = document.getElementById('mobile-generator-quick');
+const generatorList = document.getElementById('mobile-generator-list');
 const activeNameEl = document.getElementById('mobile-active-generator-name');
 const controlsContainer = document.getElementById('mobile-controls-container');
 const artOutput = document.getElementById('mobile-art-output');
@@ -77,39 +46,54 @@ function init() {
   renderGeneratorPicker();
   selectGenerator(generators[0]);
 
-  generatorSelect.addEventListener('change', (event) => {
-    const generator = generators.find((gen) => gen.getId() === event.target.value);
-    if (generator) selectGenerator(generator);
+  generatorPickerBtn.addEventListener('click', openGeneratorPicker);
+  closeGeneratorPickerBtn.addEventListener('click', closeGeneratorPicker);
+  generatorSearch.addEventListener('input', (event) => {
+    generatorQuery = event.target.value;
+    renderGeneratorPicker();
   });
 
   generateBtn.addEventListener('click', generateArt);
   controlsBtn.addEventListener('click', openControls);
   closeControlsBtn.addEventListener('click', closeControls);
-  sheetBackdrop.addEventListener('click', closeControls);
+  sheetBackdrop.addEventListener('click', () => { closeControls(); closeGeneratorPicker(); });
   downloadBtn.addEventListener('click', downloadSVG);
   helpBtn.addEventListener('click', showHelp);
   enableSheetDragToClose();
 
   window.addEventListener('resize', debounce(generateArt, 350));
   window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeControls();
+    if (event.key === 'Escape') { closeControls(); closeGeneratorPicker(); }
   });
 }
 
 function renderGeneratorPicker() {
-  generatorSelect.innerHTML = '';
-  generators.forEach((generator) => {
-    const option = document.createElement('option');
-    option.value = generator.getId();
-    option.textContent = generator.getDisplayName();
-    generatorSelect.appendChild(option);
+  generatorCategoryFilters.innerHTML = '';
+  CATEGORY_LABELS.forEach((category) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'category-chip';
+    chip.classList.toggle('active', category === generatorCategory);
+    chip.textContent = category;
+    chip.addEventListener('click', () => { generatorCategory = category; renderGeneratorPicker(); });
+    generatorCategoryFilters.appendChild(chip);
   });
+
+  generatorQuick.innerHTML = '';
+  renderMobileQuick('Favorites', getFavoriteGeneratorIds());
+  renderMobileQuick('Recent', getRecentGeneratorIds());
+
+  generatorList.innerHTML = '';
+  const entries = filterGeneratorEntries(generatorRegistry, { query: generatorQuery, category: generatorCategory });
+  entries.forEach((entry) => generatorList.appendChild(createMobileGeneratorCard(entry)));
+  if (!entries.length) generatorList.innerHTML = '<p class="empty-generator-list">No generator matches that filter.</p>';
 }
 
 function selectGenerator(generator) {
   activeGenerator = generator;
-  generatorSelect.value = generator.getId();
+  generatorLabel.textContent = generator.getDisplayName();
   activeNameEl.textContent = generator.getDisplayName();
+  rememberRecentGeneratorId(generator.getId());
 
   currentParams = {};
   generator.getParameterDefinitions().forEach((definition) => {
@@ -117,7 +101,67 @@ function selectGenerator(generator) {
   });
 
   renderControls();
+  renderGeneratorPicker();
   generateArt();
+}
+
+function createMobileGeneratorCard(entry) {
+  const card = document.createElement('article');
+  card.className = 'mobile-generator-card';
+  card.classList.toggle('active', activeGenerator?.getId() === entry.id);
+  card.innerHTML = `<div><strong>${entry.name}</strong><span>${entry.description}</span><small>${entry.category} · ${entry.tags.slice(0, 3).join(' · ')}</small></div>`;
+  const star = document.createElement('button');
+  star.type = 'button';
+  star.className = 'favorite-toggle';
+  star.textContent = getFavoriteGeneratorIds().includes(entry.id) ? '★' : '☆';
+  star.addEventListener('click', (event) => { event.stopPropagation(); toggleFavoriteGeneratorId(entry.id); renderGeneratorPicker(); });
+  card.appendChild(star);
+  card.addEventListener('click', () => {
+    const generator = generatorsById.get(entry.id);
+    if (generator) selectGenerator(generator);
+    closeGeneratorPicker();
+  });
+  return card;
+}
+
+function renderMobileQuick(label, ids) {
+  const entries = ids.map((id) => generatorRegistry.find((entry) => entry.id === id)).filter(Boolean);
+  if (!entries.length) return;
+  const title = document.createElement('div');
+  title.className = 'quick-section-title';
+  title.textContent = label;
+  generatorQuick.appendChild(title);
+  const row = document.createElement('div');
+  row.className = 'quick-generator-row';
+  entries.forEach((entry) => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'quick-generator-pill';
+    pill.textContent = entry.name;
+    pill.addEventListener('click', () => {
+      const generator = generatorsById.get(entry.id);
+      if (generator) selectGenerator(generator);
+      closeGeneratorPicker();
+    });
+    row.appendChild(pill);
+  });
+  generatorQuick.appendChild(row);
+}
+
+function openGeneratorPicker() {
+  closeControls();
+  generatorSheet.classList.add('open');
+  generatorSheet.setAttribute('aria-hidden', 'false');
+  generatorPickerBtn.setAttribute('aria-expanded', 'true');
+  sheetBackdrop.hidden = false;
+  setTimeout(() => generatorSearch.focus(), 60);
+}
+
+function closeGeneratorPicker() {
+  generatorSheet.classList.remove('open');
+  generatorSheet.setAttribute('aria-hidden', 'true');
+  generatorPickerBtn.setAttribute('aria-expanded', 'false');
+  if (!controlsSheet.classList.contains('open')) sheetBackdrop.hidden = true;
 }
 
 function renderControls() {
@@ -310,6 +354,7 @@ function downloadSVG() {
 }
 
 function openControls() {
+  closeGeneratorPicker();
   controlsSheet.classList.add('open');
   controlsBtn.classList.add('active');
   controlsSheet.setAttribute('aria-hidden', 'false');

@@ -20,10 +20,13 @@
           <h1>GenArt</h1>
           <a href="https://simiono.com/Generative-Art" title="Read about this project">by simiono</a>
         </div>
-        <label class="generator-picker" for="mobile-generator-select">
+        <div class="generator-picker">
           <span>Generator</span>
-          <select id="mobile-generator-select"></select>
-        </label>
+          <button id="btn-mobile-generator-picker" class="generator-picker-button" type="button" aria-expanded="false" aria-controls="mobile-generator-sheet">
+            <strong id="mobile-current-generator-label">Generative Ribbon</strong>
+            <small>Search, favorites, categories</small>
+          </button>
+        </div>
       </header>
 
       <main class="mobile-preview" aria-live="polite">
@@ -39,6 +42,20 @@
       </footer>
 
       <div id="mobile-sheet-backdrop" class="sheet-backdrop" hidden></div>
+      <aside id="mobile-generator-sheet" class="bottom-sheet generator-sheet" aria-hidden="true" aria-labelledby="mobile-generator-sheet-title">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <span class="eyebrow">Choose</span>
+            <h2 id="mobile-generator-sheet-title">Generator library</h2>
+          </div>
+          <button id="btn-mobile-close-generator-picker" class="icon-btn" aria-label="Close generator picker">&times;</button>
+        </div>
+        <input id="mobile-generator-search" class="mobile-generator-search" type="search" placeholder="Search generators, tags, styles…" autocomplete="off" />
+        <div id="mobile-generator-category-filters" class="mobile-category-filters" aria-label="Generator categories"></div>
+        <div id="mobile-generator-quick" class="mobile-generator-quick"></div>
+        <div id="mobile-generator-list" class="mobile-generator-list"></div>
+      </aside>
       <aside id="mobile-controls-sheet" class="bottom-sheet" aria-hidden="true" aria-labelledby="mobile-active-generator-name">
         <div class="sheet-handle" aria-hidden="true"></div>
         <div class="sheet-header">

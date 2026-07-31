@@ -1,62 +1,24 @@
-import { GenerativeRibbon } from './generators/GenerativeRibbon';
-import { FlowFieldGenerator } from './generators/FlowFieldGenerator';
-import { CirclePackingGenerator } from './generators/CirclePackingGenerator';
-import { LSystemGenerator } from './generators/LSystemGenerator';
-import { ReactionDiffusionGenerator } from './generators/ReactionDiffusionGenerator';
-import { HarmonographGenerator } from './generators/HarmonographGenerator';
-import { PhyllotaxisGenerator } from './generators/PhyllotaxisGenerator';
-import { StrangeAttractorsGenerator } from './generators/StrangeAttractorsGenerator';
-import { TruchetTilesGenerator } from './generators/TruchetTilesGenerator';
-import { TwistedMoireGenerator } from './generators/TwistedMoireGenerator';
-import { VoronoiRipplesGenerator } from './generators/VoronoiRipplesGenerator';
-import { PipeNetworkGenerator } from './generators/PipeNetworkGenerator';
-import { ParametricGridGenerator } from './generators/ParametricGridGenerator';
-import { MagneticFieldGenerator } from './generators/MagneticFieldGenerator';
-import { FourierSeriesGenerator } from './generators/FourierSeriesGenerator';
-import { MazeGenerator } from './generators/MazeGenerator';
-import { SpirographGenerator } from './generators/SpirographGenerator';
-import { PenroseTilingGenerator } from './generators/PenroseTilingGenerator';
-import { WaveInterferenceGenerator } from './generators/WaveInterferenceGenerator';
-import { ChladniPatternGenerator } from './generators/ChladniPatternGenerator';
-import { CelticKnotGenerator } from './generators/CelticKnotGenerator';
-import { ContourMapGenerator } from './generators/ContourMapGenerator';
-import { CapsuleInterferenceGenerator } from './generators/CapsuleInterferenceGenerator';
-import { FoldedCrystalGenerator } from './generators/FoldedCrystalGenerator';
-import { CrumpledMeshGenerator } from './generators/CrumpledMeshGenerator';
-
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
 import { registerServiceWorker } from './registerServiceWorker.js';
+import {
+  CATEGORY_LABELS,
+  createGeneratorInstances,
+  filterGeneratorEntries,
+  generatorRegistry,
+  getFavoriteGeneratorIds,
+  getRecentGeneratorIds,
+  randomEntry,
+  rememberRecentGeneratorId,
+  toggleFavoriteGeneratorId,
+} from './generators/generatorRegistry.js';
 
 registerServiceWorker();
 
-const generators = [
-  new GenerativeRibbon(),
-  new FlowFieldGenerator(),
-  new CirclePackingGenerator(),
-  new LSystemGenerator(),
-  new ReactionDiffusionGenerator(),
-  new HarmonographGenerator(),
-  new PhyllotaxisGenerator(),
-  new StrangeAttractorsGenerator(),
-  new TruchetTilesGenerator(),
-  new TwistedMoireGenerator(),
-  new VoronoiRipplesGenerator(),
-  new PipeNetworkGenerator(),
-  new ParametricGridGenerator(),
-  new MagneticFieldGenerator(),
-  new FourierSeriesGenerator(),
-  new MazeGenerator(),
-  new SpirographGenerator(),
-  new PenroseTilingGenerator(),
-  new WaveInterferenceGenerator(),
-  new ChladniPatternGenerator(),
-  new CelticKnotGenerator(),
-  new ContourMapGenerator(),
-  new CapsuleInterferenceGenerator(),
-  new FoldedCrystalGenerator(),
-  new CrumpledMeshGenerator()
-];
+const generators = createGeneratorInstances();
+const generatorsById = new Map(generators.map((generator) => [generator.getId(), generator]));
+let generatorQuery = '';
+let generatorCategory = 'All';
 
 let activeGenerator = generators[0];
 let currentParams = {};
@@ -68,6 +30,11 @@ const controlsContainer = document.getElementById('controls-container');
 const artOutput = document.getElementById('art-output');
 const generateBtn = document.getElementById('btn-generate');
 const downloadBtn = document.getElementById('btn-download');
+const generatorSearchEl = document.getElementById('generator-search');
+const categoryFiltersEl = document.getElementById('generator-category-filters');
+const recentEl = document.getElementById('generator-recent');
+const favoritesEl = document.getElementById('generator-favorites');
+const randomGeneratorBtn = document.getElementById('btn-random-generator');
 
 // Create Help Button dynamically
 const helpBtn = document.createElement('button');
@@ -82,9 +49,13 @@ downloadBtn.parentElement.insertBefore(helpBtn, downloadBtn);
 function init() {
   setupMobileRedirectPrompt();
   renderSidebar();
-  renderGlobalSettings();
   selectGenerator(generators[0]);
 
+  generatorSearchEl.addEventListener('input', (event) => {
+    generatorQuery = event.target.value;
+    renderSidebar();
+  });
+  randomGeneratorBtn.addEventListener('click', selectRandomVisibleGenerator);
   generateBtn.addEventListener('click', generateArt);
   downloadBtn.addEventListener('click', downloadSVG);
   helpBtn.addEventListener('click', showHelp);
@@ -203,22 +174,118 @@ function renderGlobalSettings() {
 }
 
 function renderSidebar() {
+  renderCategoryFilters();
+  renderQuickSections();
   generatorListEl.innerHTML = '';
-  generators.forEach(gen => {
-    const item = document.createElement('div');
-    item.className = 'generator-item';
-    item.textContent = gen.getDisplayName();
-    item.addEventListener('click', () => selectGenerator(gen));
-    generatorListEl.appendChild(item);
+  const entries = getVisibleEntries();
+  const grouped = new Map();
+  for (const entry of entries) {
+    if (!grouped.has(entry.category)) grouped.set(entry.category, []);
+    grouped.get(entry.category).push(entry);
+  }
+  if (entries.length === 0) {
+    generatorListEl.innerHTML = '<p class="empty-generator-list">No generator matches that filter.</p>';
+    return;
+  }
+  for (const [category, categoryEntries] of grouped) {
+    if (generatorCategory === 'All') {
+      const heading = document.createElement('div');
+      heading.className = 'generator-group-heading';
+      heading.textContent = category;
+      generatorListEl.appendChild(heading);
+    }
+    categoryEntries.forEach((entry) => generatorListEl.appendChild(createGeneratorCard(entry)));
+  }
+}
+
+function renderCategoryFilters() {
+  categoryFiltersEl.innerHTML = '';
+  CATEGORY_LABELS.forEach((category) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'category-chip';
+    chip.classList.toggle('active', category === generatorCategory);
+    chip.textContent = category;
+    chip.addEventListener('click', () => {
+      generatorCategory = category;
+      renderSidebar();
+    });
+    categoryFiltersEl.appendChild(chip);
   });
+}
+
+function renderQuickSections() {
+  renderEntryPills(favoritesEl, 'Favorites', getFavoriteGeneratorIds());
+  renderEntryPills(recentEl, 'Recent', getRecentGeneratorIds());
+}
+
+function renderEntryPills(container, label, ids) {
+  container.innerHTML = '';
+  const entries = ids.map((id) => generatorRegistry.find((entry) => entry.id === id)).filter(Boolean);
+  if (entries.length === 0) return;
+  const title = document.createElement('div');
+  title.className = 'quick-section-title';
+  title.textContent = label;
+  container.appendChild(title);
+  const row = document.createElement('div');
+  row.className = 'quick-generator-row';
+  entries.forEach((entry) => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'quick-generator-pill';
+    pill.textContent = entry.name;
+    pill.addEventListener('click', () => selectGeneratorById(entry.id));
+    row.appendChild(pill);
+  });
+  container.appendChild(row);
+}
+
+function createGeneratorCard(entry) {
+  const item = document.createElement('article');
+  item.className = 'generator-card generator-item';
+  item.dataset.generatorId = entry.id;
+  item.classList.toggle('active', activeGenerator?.getId() === entry.id);
+  const favoriteIds = getFavoriteGeneratorIds();
+  const star = document.createElement('button');
+  star.type = 'button';
+  star.className = 'favorite-toggle';
+  star.textContent = favoriteIds.includes(entry.id) ? '★' : '☆';
+  star.title = 'Toggle favorite';
+  star.addEventListener('click', (event) => {
+    event.stopPropagation();
+    toggleFavoriteGeneratorId(entry.id);
+    renderSidebar();
+  });
+  const content = document.createElement('div');
+  content.className = 'generator-card-content';
+  content.innerHTML = `<strong>${entry.name}</strong><span>${entry.description}</span><small>${entry.tags.slice(0, 4).join(' · ')}</small>`;
+  item.appendChild(content);
+  item.appendChild(star);
+  item.addEventListener('click', () => selectGeneratorById(entry.id));
+  return item;
+}
+
+function getVisibleEntries() {
+  return filterGeneratorEntries(generatorRegistry, { query: generatorQuery, category: generatorCategory });
+}
+
+function selectRandomVisibleGenerator() {
+  const entry = randomEntry(getVisibleEntries());
+  if (entry) selectGeneratorById(entry.id);
+}
+
+function selectGeneratorById(id) {
+  const gen = generatorsById.get(id);
+  if (gen) selectGenerator(gen);
 }
 
 function selectGenerator(gen) {
   activeGenerator = gen;
-  // Update active class
-  Array.from(generatorListEl.children).forEach(child => {
-    child.classList.toggle('active', child.textContent === gen.getDisplayName());
+  rememberRecentGeneratorId(gen.getId());
+  Array.from(generatorListEl.querySelectorAll('.generator-card')).forEach(child => {
+    child.classList.toggle('active', child.dataset?.generatorId === gen.getId() || child.textContent.includes(gen.getDisplayName()));
   });
+  renderQuickSections();
 
   activeNameEl.textContent = gen.getDisplayName();
 
