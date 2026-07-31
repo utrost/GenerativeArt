@@ -7,14 +7,14 @@ export class PaperMemoryGenerator extends Generator {
   getDisplayName() { return 'Paper Memory'; }
   getParameterDefinitions() { return [
     ParameterDefinition.selection('Preset', 'Handled Sheet', ['Handled Sheet', 'Quiet Ghosts', 'Hard Fold', 'Rubbing Study', 'Custom'], 'Fold and rubbing memory presets'),
-    ParameterDefinition.integer('Fold Count', 12, 2, 40, 'Number of crease histories'),
-    ParameterDefinition.doubleVal('Memory Depth', 64, 0, 100, 'How many ghost creases remain visible'),
-    ParameterDefinition.doubleVal('Crease Sharpness', 58, 0, 100, 'Straightness and emphasis of recent folds'),
-    ParameterDefinition.doubleVal('Rubbing Density', 48, 0, 100, 'Short dry-brush pressure marks'),
-    ParameterDefinition.doubleVal('Fold Symmetry', 34, 0, 100, 'Mirrored handling marks'),
+    ParameterDefinition.integer('Fold Count', 18, 2, 40, 'Number of crease histories'),
+    ParameterDefinition.doubleVal('Memory Depth', 70, 0, 100, 'How many ghost creases remain visible'),
+    ParameterDefinition.doubleVal('Crease Sharpness', 40, 0, 100, 'Straightness and emphasis of recent folds'),
+    ParameterDefinition.doubleVal('Rubbing Density', 96, 0, 100, 'Short dry-brush pressure marks'),
+    ParameterDefinition.doubleVal('Fold Symmetry', 20, 0, 100, 'Mirrored handling marks'),
     ParameterDefinition.integer('Colors', 3, 1, 6, 'Plotter color layers'),
     ParameterDefinition.doubleVal('Stroke Width', 0.65, 0.1, 3, 'Preview stroke width'),
-    ParameterDefinition.integer('Seed', 616, 1, 99999, 'Deterministic random seed'),
+    ParameterDefinition.integer('Seed', 1492, 1, 99999, 'Deterministic random seed'),
   ]; }
   onParameterChanged(paramName, value, current) { const presets = { 'Handled Sheet': { 'Fold Count': 12, 'Memory Depth': 64, 'Crease Sharpness': 58, 'Rubbing Density': 48, 'Fold Symmetry': 34, Colors: 3, Seed: 616 }, 'Quiet Ghosts': { 'Fold Count': 8, 'Memory Depth': 82, 'Crease Sharpness': 22, 'Rubbing Density': 18, 'Fold Symmetry': 50, Colors: 2, Seed: 222 }, 'Hard Fold': { 'Fold Count': 7, 'Memory Depth': 35, 'Crease Sharpness': 95, 'Rubbing Density': 30, 'Fold Symmetry': 20, Colors: 3, Seed: 88 }, 'Rubbing Study': { 'Fold Count': 16, 'Memory Depth': 58, 'Crease Sharpness': 36, 'Rubbing Density': 95, 'Fold Symmetry': 12, Colors: 3, Seed: 1492 } }; if (paramName === 'Preset' && presets[value]) { Object.assign(current, presets[value]); return true; } if (paramName !== 'Preset' && current.Preset !== 'Custom') { current.Preset = 'Custom'; return true; } return false; }
   generate(params) {

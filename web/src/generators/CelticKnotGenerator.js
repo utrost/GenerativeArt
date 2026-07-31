@@ -14,13 +14,13 @@ export class CelticKnotGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Simple Braid", "Dense Weave", "Border Pattern", "Round Knot"], "Select a predefined style"),
-            ParameterDefinition.integer("Grid Width", 6, 2, 16, "Number of grid cells horizontally"),
-            ParameterDefinition.integer("Grid Height", 6, 2, 16, "Number of grid cells vertically"),
-            ParameterDefinition.doubleVal("Ribbon Width", 8.0, 2.0, 25.0, "Width of the interlaced ribbons"),
-            ParameterDefinition.doubleVal("Corner Radius", 0.3, 0.0, 0.5, "Roundness of turns (0 = sharp, 0.5 = circular)"),
+            ParameterDefinition.selection("Preset", "Dense Weave", ["Custom", "Simple Braid", "Dense Weave", "Border Pattern", "Round Knot"], "Select a predefined style"),
+            ParameterDefinition.integer("Grid Width", 10, 2, 16, "Number of grid cells horizontally"),
+            ParameterDefinition.integer("Grid Height", 10, 2, 16, "Number of grid cells vertically"),
+            ParameterDefinition.doubleVal("Ribbon Width", 5.0, 2.0, 25.0, "Width of the interlaced ribbons"),
+            ParameterDefinition.doubleVal("Corner Radius", 0.4, 0.0, 0.5, "Roundness of turns (0 = sharp, 0.5 = circular)"),
             ParameterDefinition.integer("Seed", 42, 1, 9999, "Random seed for break patterns"),
-            ParameterDefinition.doubleVal("Break Probability", 0.3, 0.0, 1.0, "Probability of adding breaks to create knot patterns"),
+            ParameterDefinition.doubleVal("Break Probability", 0.5, 0.0, 1.0, "Probability of adding breaks to create knot patterns"),
             ParameterDefinition.integer("Colors", 2, 1, 6, "Number of plotter layers")
         ];
     }
