@@ -25,6 +25,13 @@ import { ContourMapGenerator } from './ContourMapGenerator.js';
 import { CapsuleInterferenceGenerator } from './CapsuleInterferenceGenerator.js';
 import { FoldedCrystalGenerator } from './FoldedCrystalGenerator.js';
 import { CrumpledMeshGenerator } from './CrumpledMeshGenerator.js';
+import { FaultLinesGenerator } from './FaultLinesGenerator.js';
+import { ThreadLoomGenerator } from './ThreadLoomGenerator.js';
+import { BotanicalCircuitGenerator } from './BotanicalCircuitGenerator.js';
+import { PaperMemoryGenerator } from './PaperMemoryGenerator.js';
+import { MechanicalRainGenerator } from './MechanicalRainGenerator.js';
+import { ArchiveShardsGenerator } from './ArchiveShardsGenerator.js';
+import { ResonantTopographyGenerator } from './ResonantTopographyGenerator.js';
 
 const allGenerators = [
     new GenerativeRibbon(),
@@ -52,6 +59,13 @@ const allGenerators = [
     new CapsuleInterferenceGenerator(),
     new FoldedCrystalGenerator(),
     new CrumpledMeshGenerator(),
+    new FaultLinesGenerator(),
+    new ThreadLoomGenerator(),
+    new BotanicalCircuitGenerator(),
+    new PaperMemoryGenerator(),
+    new MechanicalRainGenerator(),
+    new ArchiveShardsGenerator(),
+    new ResonantTopographyGenerator(),
 ];
 
 function buildDefaultParams(generator) {

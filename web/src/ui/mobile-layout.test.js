@@ -32,9 +32,9 @@ describe('mobile web app entry point', () => {
   it('provides mobile controls for generator selection and opening the controls sheet', () => {
     const html = read('mobile.html');
 
-    expect(html).toContain('id="mobile-generator-select"');
-    expect(html).toContain('id="btn-mobile-controls"');
-    expect(html).toContain('id="mobile-controls-sheet"');
+    expect(html).toContain('id="btn-mobile-generator-picker"');
+    expect(html).toContain('id="mobile-generator-sheet"');
+    expect(html).toContain('id="mobile-generator-list"');
   });
 
   it('supports polished bottom-sheet interactions for touch devices', () => {
