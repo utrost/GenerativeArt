@@ -13,12 +13,12 @@ export class ChladniPatternGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Square Plate Mode (3,2)", "Circular Drum", "High Frequency", "Simple Cross"], "Select a predefined style"),
-            ParameterDefinition.integer("M", 3, 1, 12, "Horizontal mode number"),
-            ParameterDefinition.integer("N", 2, 1, 12, "Vertical mode number"),
-            ParameterDefinition.doubleVal("Threshold", 0.05, 0.01, 0.3, "Nodal line thickness (lower = thinner lines)"),
+            ParameterDefinition.selection("Preset", "Circular Drum", ["Custom", "Square Plate Mode (3,2)", "Circular Drum", "High Frequency", "Simple Cross"], "Select a predefined style"),
+            ParameterDefinition.integer("M", 5, 1, 12, "Horizontal mode number"),
+            ParameterDefinition.integer("N", 3, 1, 12, "Vertical mode number"),
+            ParameterDefinition.doubleVal("Threshold", 0.04, 0.01, 0.3, "Nodal line thickness (lower = thinner lines)"),
             ParameterDefinition.integer("Resolution", 300, 50, 500, "Grid resolution for contour extraction"),
-            ParameterDefinition.integer("Contour Levels", 8, 1, 20, "Number of displacement contour lines"),
+            ParameterDefinition.integer("Contour Levels", 10, 1, 20, "Number of displacement contour lines"),
             ParameterDefinition.bool("Show Nodal Lines Only", false, "Show only the zero-displacement nodal lines"),
             ParameterDefinition.integer("Colors", 2, 1, 6, "Number of plotter layers")
         ];

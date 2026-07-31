@@ -13,12 +13,12 @@ export class FourierSeriesGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Square Wave Form", "Triangle Mesh", "Sawtooth Density"], "Select a predefined style"),
-            ParameterDefinition.selection("waveform", "Square", ["Square", "Triangle", "Sawtooth"], "Waveform type"),
-            ParameterDefinition.integer("lineCount", 20, 1, 100, "Number of lines"),
-            ParameterDefinition.doubleVal("amplitude", 50.0, 1.0, 200.0, "Wave amplitude"),
-            ParameterDefinition.doubleVal("frequency", 2.0, 0.1, 20.0, "Cycles per width"),
-            ParameterDefinition.doubleVal("verticalSpacing", 20.0, 5.0, 100.0, "Vertical spacing")
+            ParameterDefinition.selection("Preset", "Triangle Mesh", ["Custom", "Square Wave Form", "Triangle Mesh", "Sawtooth Density"], "Select a predefined style"),
+            ParameterDefinition.selection("waveform", "Triangle", ["Square", "Triangle", "Sawtooth"], "Waveform type"),
+            ParameterDefinition.integer("lineCount", 46, 1, 100, "Number of lines"),
+            ParameterDefinition.doubleVal("amplitude", 90.0, 1.0, 200.0, "Wave amplitude"),
+            ParameterDefinition.doubleVal("frequency", 1.5, 0.1, 20.0, "Cycles per width"),
+            ParameterDefinition.doubleVal("verticalSpacing", 12.0, 5.0, 100.0, "Vertical spacing")
         ];
     }
 

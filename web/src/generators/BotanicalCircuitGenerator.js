@@ -7,14 +7,14 @@ export class BotanicalCircuitGenerator extends Generator {
   getDisplayName() { return 'Botanical Circuit'; }
   getParameterDefinitions() { return [
     ParameterDefinition.selection('Preset', 'Fern PCB', ['Fern PCB', 'Strict Routing', 'Wild Creeper', 'Pad Garden', 'Custom'], 'Plant growth constrained by circuit-board routing'),
-    ParameterDefinition.integer('Branch Depth', 6, 3, 9, 'Recursive growth depth'),
-    ParameterDefinition.doubleVal('Growth Bias', 58, 0, 100, 'Organic curve vs circuit angle discipline'),
-    ParameterDefinition.integer('Node Density', 3, 1, 7, 'Side branches per node'),
-    ParameterDefinition.doubleVal('Trace Spacing', 11, 4, 28, 'Distance between paired traces'),
-    ParameterDefinition.doubleVal('Leaf Pads', 70, 0, 100, 'How often leaves become solder pads'),
+    ParameterDefinition.integer('Branch Depth', 8, 3, 9, 'Recursive growth depth'),
+    ParameterDefinition.doubleVal('Growth Bias', 88, 0, 100, 'Organic curve vs circuit angle discipline'),
+    ParameterDefinition.integer('Node Density', 5, 1, 7, 'Side branches per node'),
+    ParameterDefinition.doubleVal('Trace Spacing', 9, 4, 28, 'Distance between paired traces'),
+    ParameterDefinition.doubleVal('Leaf Pads', 55, 0, 100, 'How often leaves become solder pads'),
     ParameterDefinition.integer('Colors', 3, 1, 6, 'Plotter color layers'),
     ParameterDefinition.doubleVal('Stroke Width', 0.75, 0.1, 3.0, 'Preview stroke width'),
-    ParameterDefinition.integer('Seed', 2718, 1, 99999, 'Deterministic random seed'),
+    ParameterDefinition.integer('Seed', 99, 1, 99999, 'Deterministic random seed'),
   ]; }
   onParameterChanged(paramName, value, current) {
     const presets = {

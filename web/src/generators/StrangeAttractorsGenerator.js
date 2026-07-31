@@ -13,14 +13,14 @@ export class StrangeAttractorsGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Classic", "Swirling Web", "Dense Oval", "Twin Galaxies"], "Select a predefined style"),
-            ParameterDefinition.integer("Iterations", 10000, 1000, 50000, "Number of points"),
-            ParameterDefinition.doubleVal("A", 1.5, -3.0, 3.0, "Chaos Parameter A"),
-            ParameterDefinition.doubleVal("B", -1.8, -3.0, 3.0, "Chaos Parameter B"),
-            ParameterDefinition.doubleVal("C", 1.6, -3.0, 3.0, "Chaos Parameter C"),
-            ParameterDefinition.doubleVal("D", 0.9, -3.0, 3.0, "Chaos Parameter D"),
-            ParameterDefinition.doubleVal("Scale", 200.0, 50.0, 500.0, "Zoom level"),
-            ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
+            ParameterDefinition.selection("Preset", "Swirling Web", ["Custom", "Classic", "Swirling Web", "Dense Oval", "Twin Galaxies"], "Select a predefined style"),
+            ParameterDefinition.integer("Iterations", 30000, 1000, 50000, "Number of points"),
+            ParameterDefinition.doubleVal("A", 1.8, -3.0, 3.0, "Chaos Parameter A"),
+            ParameterDefinition.doubleVal("B", 1.9, -3.0, 3.0, "Chaos Parameter B"),
+            ParameterDefinition.doubleVal("C", -1.5, -3.0, 3.0, "Chaos Parameter C"),
+            ParameterDefinition.doubleVal("D", -0.8, -3.0, 3.0, "Chaos Parameter D"),
+            ParameterDefinition.doubleVal("Scale", 220.0, 50.0, 500.0, "Zoom level"),
+            ParameterDefinition.integer("Colors", 3, 1, 6, "Number of plotter layers")
         ];
     }
 

@@ -14,15 +14,15 @@ export class WaveInterferenceGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Two Sources", "Triple Point", "Ripple Pool", "Standing Wave"], "Select a predefined style"),
+            ParameterDefinition.selection("Preset", "Triple Point", ["Custom", "Two Sources", "Triple Point", "Ripple Pool", "Standing Wave"], "Select a predefined style"),
             ParameterDefinition.integer("Sources", 3, 1, 8, "Number of wave sources"),
-            ParameterDefinition.doubleVal("Wavelength", 30.0, 5.0, 100.0, "Distance between wave crests"),
+            ParameterDefinition.doubleVal("Wavelength", 28.0, 5.0, 100.0, "Distance between wave crests"),
             ParameterDefinition.doubleVal("Amplitude", 1.0, 0.1, 3.0, "Wave strength"),
-            ParameterDefinition.integer("Contour Lines", 20, 5, 50, "Number of interference contour lines"),
-            ParameterDefinition.doubleVal("Line Spacing", 0.3, 0.05, 1.0, "Spacing between contour levels"),
-            ParameterDefinition.integer("Resolution", 200, 50, 400, "Grid resolution for marching squares"),
+            ParameterDefinition.integer("Contour Lines", 18, 5, 50, "Number of interference contour lines"),
+            ParameterDefinition.doubleVal("Line Spacing", 0.35, 0.05, 1.0, "Spacing between contour levels"),
+            ParameterDefinition.integer("Resolution", 180, 50, 400, "Grid resolution for marching squares"),
             ParameterDefinition.integer("Seed", 42, 1, 9999, "Random seed for source positions"),
-            ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
+            ParameterDefinition.integer("Colors", 2, 1, 6, "Number of plotter layers")
         ];
     }
 

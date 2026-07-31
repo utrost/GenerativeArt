@@ -13,12 +13,12 @@ export class PhyllotaxisGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", ["Custom", "Sunflower", "Tight Spiral", "Loose Swirl"], "Select a predefined style"),
-            ParameterDefinition.integer("Dot Count", 500, 100, 5000, "Number of seeds/dots"),
-            ParameterDefinition.doubleVal("Spread (c)", 6.0, 2.0, 20.0, "Spacing between dots"),
-            ParameterDefinition.doubleVal("Dot Size", 2.0, 0.5, 10.0, "Size of each dot"),
+            ParameterDefinition.selection("Preset", "Sunflower", ["Custom", "Sunflower", "Tight Spiral", "Loose Swirl"], "Select a predefined style"),
+            ParameterDefinition.integer("Dot Count", 1800, 100, 5000, "Number of seeds/dots"),
+            ParameterDefinition.doubleVal("Spread (c)", 9.5, 2.0, 20.0, "Spacing between dots"),
+            ParameterDefinition.doubleVal("Dot Size", 2.8, 0.5, 10.0, "Size of each dot"),
             ParameterDefinition.doubleVal("Angle Offset", 0.0, -5.0, 5.0, "Deviation from Golden Angle"),
-            ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
+            ParameterDefinition.integer("Colors", 2, 1, 6, "Number of plotter layers")
         ];
     }
 

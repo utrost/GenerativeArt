@@ -24,10 +24,10 @@ export class GenerativeRibbon extends Generator {
     getParameterDefinitions() {
         return [
             ParameterDefinition.selection("Preset", "Custom", ["Custom", "Dense Coil", "Sparse Wire", "Long Thread"], "Select a predefined style"),
-            ParameterDefinition.integer("Lines", 6000, 500, 20000, "Density of the ribbon"),
-            ParameterDefinition.doubleVal("Length (Max T)", 25.0, 5.0, 100.0, "Length of the ribbon"),
-            ParameterDefinition.doubleVal("Scale", 2.0, 0.5, 5.0, "Zoom level"),
-            ParameterDefinition.integer("Colors", 1, 1, 6, "Number of plotter layers")
+            ParameterDefinition.integer("Lines", 2400, 500, 20000, "Density of the ribbon"),
+            ParameterDefinition.doubleVal("Length (Max T)", 18.0, 5.0, 100.0, "Length of the ribbon"),
+            ParameterDefinition.doubleVal("Scale", 1.2, 0.5, 5.0, "Zoom level"),
+            ParameterDefinition.integer("Colors", 3, 1, 6, "Number of plotter layers")
         ];
     }
 

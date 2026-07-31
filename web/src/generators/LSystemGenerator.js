@@ -12,14 +12,14 @@ export class LSystemGenerator extends Generator {
 
     getParameterDefinitions() {
         return [
-            ParameterDefinition.selection("Preset", "Custom", 
+            ParameterDefinition.selection("Preset", "Fern", 
                 ["Custom", "Koch Snowflake", "Quadratic Koch", "Sierpinski", "Dragon Curve", "Plant/Bush", "Fern", "Hilbert Curve", "Penrose Tiling"], 
                 "Select a predefined L-System"),
-            ParameterDefinition.integer("Iterations", 4, 1, 12, "Number of recursion steps"),
-            ParameterDefinition.doubleVal("Angle", 90.0, 0.0, 360.0, "Turn angle in degrees"),
+            ParameterDefinition.integer("Iterations", 5, 1, 12, "Number of recursion steps"),
+            ParameterDefinition.doubleVal("Angle", 25.0, 0.0, 360.0, "Turn angle in degrees"),
             ParameterDefinition.doubleVal("Line Length", 10.0, 1.0, 100.0, "Length of each segment"),
-            ParameterDefinition.string("Axiom", "F", "Initial state"),
-            ParameterDefinition.string("Rules", "F:F+F-F-F+F", "Production rules")
+            ParameterDefinition.string("Axiom", "X", "Initial state"),
+            ParameterDefinition.string("Rules", "X:F+[[X]-X]-F[-FX]+X;F:FF", "Production rules")
         ];
     }
 
