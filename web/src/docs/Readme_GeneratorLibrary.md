@@ -25,4 +25,4 @@ Generator metadata lives in `web/src/generators/generatorRegistry.js`. Add new g
 - tags,
 - short description.
 
-The desktop app, mobile app, and registry tests all read from the same source so the generator count and browsing metadata stay aligned.
+The desktop web UI, mobile web UI, and registry tests all read from the same source so the generator count and browsing metadata stay aligned.

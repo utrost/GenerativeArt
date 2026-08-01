@@ -110,7 +110,7 @@ export class FlowFieldGenerator extends Generator {
             }
 
             // Append path (using basic string, but SvgCanvas expects specific handling)
-            // SvgCanvas.java: addRaw(layerIndex, "<path ... />")
+            // Add a raw SVG path to the selected pen layer.
             // SvgCanvas.js: addRaw(layerIndex, content) -> pushes content.
             const pathString = `<path d="${pathData}" fill="none" opacity="0.5" />`;
             canvas.addRaw(layerIndex, pathString);

@@ -6,7 +6,7 @@ const root = resolve(__dirname, '../..');
 const readText = (path) => readFileSync(resolve(root, path), 'utf8');
 
 describe('generator picker UI contracts', () => {
-  it('desktop app exposes search, category, favorites, recent, and random picker hooks', () => {
+  it('desktop web UI exposes search, category, favorites, recent, and random picker hooks', () => {
     const html = readText('index.html');
     const css = readText('src/ui/style.css');
 
