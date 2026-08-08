@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { FaultLinesGenerator } from './FaultLinesGenerator.js';
 import { ThreadLoomGenerator } from './ThreadLoomGenerator.js';
 import { BotanicalCircuitGenerator } from './BotanicalCircuitGenerator.js';
+import { BotanicalGestureGenerator } from './BotanicalGestureGenerator.js';
 import { PaperMemoryGenerator } from './PaperMemoryGenerator.js';
 import { MechanicalRainGenerator } from './MechanicalRainGenerator.js';
 import { ArchiveShardsGenerator } from './ArchiveShardsGenerator.js';
@@ -33,6 +34,13 @@ const newGenerators = [
     name: 'Botanical Circuit',
     required: ['layer_1_traces', 'layer_2_leaf_pads', 'layer_3_vias'],
     doc: 'Readme_BotanicalCircuitGenerator.md',
+  },
+  {
+    generator: new BotanicalGestureGenerator(),
+    id: 'botanical-gesture',
+    name: 'Botanical Gesture',
+    required: ['layer_1_structure', 'layer_2_shadow_hatching', 'layer_3_loose_gesture'],
+    doc: 'Readme_BotanicalGestureGenerator.md',
   },
   {
     generator: new PaperMemoryGenerator(),
