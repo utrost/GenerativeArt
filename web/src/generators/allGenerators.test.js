@@ -28,6 +28,7 @@ import { CrumpledMeshGenerator } from './CrumpledMeshGenerator.js';
 import { FaultLinesGenerator } from './FaultLinesGenerator.js';
 import { ThreadLoomGenerator } from './ThreadLoomGenerator.js';
 import { BotanicalCircuitGenerator } from './BotanicalCircuitGenerator.js';
+import { BotanicalGestureGenerator } from './BotanicalGestureGenerator.js';
 import { PaperMemoryGenerator } from './PaperMemoryGenerator.js';
 import { MechanicalRainGenerator } from './MechanicalRainGenerator.js';
 import { ArchiveShardsGenerator } from './ArchiveShardsGenerator.js';
@@ -62,6 +63,7 @@ const allGenerators = [
     new FaultLinesGenerator(),
     new ThreadLoomGenerator(),
     new BotanicalCircuitGenerator(),
+    new BotanicalGestureGenerator(),
     new PaperMemoryGenerator(),
     new MechanicalRainGenerator(),
     new ArchiveShardsGenerator(),

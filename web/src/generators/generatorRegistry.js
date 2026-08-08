@@ -26,6 +26,7 @@ import { CrumpledMeshGenerator } from './CrumpledMeshGenerator';
 import { FaultLinesGenerator } from './FaultLinesGenerator';
 import { ThreadLoomGenerator } from './ThreadLoomGenerator';
 import { BotanicalCircuitGenerator } from './BotanicalCircuitGenerator';
+import { BotanicalGestureGenerator } from './BotanicalGestureGenerator';
 import { PaperMemoryGenerator } from './PaperMemoryGenerator';
 import { MechanicalRainGenerator } from './MechanicalRainGenerator';
 import { ArchiveShardsGenerator } from './ArchiveShardsGenerator';
@@ -75,6 +76,7 @@ export const generatorRegistry = [
   meta(() => new FaultLinesGenerator(), 'Plotter studies', ['fault', 'contour', 'geology', 'stress', 'plotter'], 'Contour fields sheared by tectonic cracks and stress ticks.'),
   meta(() => new ThreadLoomGenerator(), 'Line fields', ['thread', 'loom', 'weaving', 'moire', 'multi-pen', 'plotter'], 'Sagging thread curves woven between frame anchors.'),
   meta(() => new BotanicalCircuitGenerator(), 'Organic / natural systems', ['botanical', 'circuit', 'pcb', 'vias', 'plotter'], 'Plant-like branching constrained by PCB-style routing.'),
+  meta(() => new BotanicalGestureGenerator(), 'Organic / natural systems', ['botanical', 'flower', 'rose', 'tree', 'gesture', 'plotter'], 'Loose flower and tree sketches made from repeated pen gestures.'),
   meta(() => new PaperMemoryGenerator(), 'Plotter studies', ['paper', 'crease', 'fold', 'rubbing', 'plotter'], 'Recent and ghost paper creases with sparse rubbing marks.'),
   meta(() => new MechanicalRainGenerator(), 'Line fields', ['rain', 'deflector', 'physics', 'plotter'], 'Falling trajectories deflected by pins, paddles, and wind.'),
   meta(() => new ArchiveShardsGenerator(), 'Constructed systems / diagrams', ['archive', 'metadata', 'diagram', 'shards', 'links'], 'Fragmented document rectangles clustered by hidden metadata axes.'),
