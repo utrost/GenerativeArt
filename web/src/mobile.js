@@ -22,6 +22,11 @@ let currentParams = {};
 let currentPaperSize = 'SCREEN_1000';
 let inputElements = {};
 let isUpdatingUI = false;
+let pendingGenerateTimer = null;
+let pendingGenerateFrame = null;
+let generationSequence = 0;
+
+const MOBILE_GENERATION_DELAY_MS = 120;
 
 const generatorPickerBtn = document.getElementById('btn-mobile-generator-picker');
 const generatorLabel = document.getElementById('mobile-current-generator-label');
@@ -194,10 +199,8 @@ function renderControls() {
       const needsRefresh = activeGenerator.onParameterChanged(definition.name, value, currentParams);
       if (needsRefresh) {
         renderControls();
-        generateArt();
-      } else {
-        generateArt();
       }
+      scheduleGenerateArt();
     };
 
     if (definition.type === 'integer' || definition.type === 'double') {
@@ -294,7 +297,7 @@ function renderPaperSizeControl() {
   select.value = currentPaperSize;
   select.addEventListener('change', (event) => {
     currentPaperSize = event.target.value;
-    generateArt();
+    scheduleGenerateArt();
   });
 
   group.appendChild(label);
@@ -322,7 +325,28 @@ function updateControlsFromParams() {
   } finally {
     isUpdatingUI = false;
   }
-  generateArt();
+  scheduleGenerateArt();
+}
+
+function scheduleGenerateArt(delay = MOBILE_GENERATION_DELAY_MS) {
+  generationSequence += 1;
+  const sequence = generationSequence;
+
+  if (pendingGenerateTimer !== null) {
+    clearTimeout(pendingGenerateTimer);
+  }
+  if (pendingGenerateFrame !== null) {
+    cancelAnimationFrame(pendingGenerateFrame);
+    pendingGenerateFrame = null;
+  }
+
+  pendingGenerateTimer = window.setTimeout(() => {
+    pendingGenerateTimer = null;
+    pendingGenerateFrame = requestAnimationFrame(() => {
+      pendingGenerateFrame = null;
+      if (sequence === generationSequence) generateArt();
+    });
+  }, delay);
 }
 
 function generateArt() {

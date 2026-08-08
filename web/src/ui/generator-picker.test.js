@@ -32,6 +32,16 @@ describe('generator picker UI contracts', () => {
     expect(css).toContain('.mobile-generator-card');
   });
 
+  it('mobile parameter changes are coalesced before regenerating art', () => {
+    const js = readText('src/mobile.js');
+
+    expect(js).toContain('MOBILE_GENERATION_DELAY_MS');
+    expect(js).toContain('function scheduleGenerateArt');
+    expect(js).toContain('clearTimeout(pendingGenerateTimer)');
+    expect(js).toContain('requestAnimationFrame');
+    expect(js).toContain('scheduleGenerateArt();');
+  });
+
   it('README documents generator library browsing controls', () => {
     const readme = readText('../README.md');
     expect(readme).toContain('Generator library');
