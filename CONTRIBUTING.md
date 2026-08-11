@@ -20,8 +20,10 @@ The project is web-only. Generators live in `web/src/generators/` and produce SV
    - `generate(params)`
    - optional `onParameterChanged(...)` for presets or linked controls
 3. Add help text in `web/src/docs/Readme_YourGenerator.md`.
-4. Register the generator in `web/src/main.js`.
-5. Add it to `web/src/generators/allGenerators.test.js`.
+4. Register the generator in `web/src/generators/generatorRegistry.js`.
+5. Add focused tests for geometry, bounds, presets, or performance when the generator has behavior beyond the shared registry/all-generator contracts.
+
+The shared registry tests expect every registered generator to have matching help documentation, so missing or misnamed `Readme_*.md` files fail `npm test`.
 
 ## Running Tests
 

@@ -1,26 +1,56 @@
 
 const readmeModules = import.meta.glob('../docs/*.md', { query: '?raw', import: 'default', eager: true });
+const HELP_DESCRIPTOR_SUFFIXES = ['fractal', 'generator'];
 
 export class HelpSystem {
     static getHelpContent(generatorDisplayName) {
-        // Map Display Name or Class Name to Filename
-        // Files are like Readme_CirclePackingGenerator.md
-        // Generators have display names like "Circle Packing". 
-        // We might need a map or normalize the name. 
-        // But better: use the generator's class name if possible, or try to match.
-        // Let's assume we pass the simpler "Id" or we just search.
-
-        // Let's try to match loosely.
-        const normalized = generatorDisplayName.replace(/[^a-zA-Z]/g, '');
-
-        for (const path in readmeModules) {
-            // path is like "../docs/Readme_CirclePackingGenerator.md"
-            if (path.toLowerCase().includes(normalized.toLowerCase())) {
-                return this.parseMarkdown(readmeModules[path]);
-            }
+        const path = this.getHelpPath(generatorDisplayName);
+        if (path) {
+            return this.parseMarkdown(readmeModules[path]);
         }
 
         return `<h1>No Help Found</h1><p>Could not find documentation for ${generatorDisplayName}</p>`;
+    }
+
+    static getHelpPath(generatorDisplayName) {
+        const candidates = this.getHelpNameCandidates(generatorDisplayName);
+
+        for (const path in readmeModules) {
+            const normalizedPath = this.normalizeHelpDocPath(path);
+            if (candidates.includes(normalizedPath)) {
+                return path;
+            }
+        }
+
+        return null;
+    }
+
+    static getHelpNameCandidates(generatorDisplayName) {
+        const withoutParenthetical = generatorDisplayName.replace(/\([^)]*\)/g, ' ');
+        const withoutTrailingDescriptor = withoutParenthetical.split(/\s+-\s+/)[0];
+        const normalized = this.normalizeHelpName(generatorDisplayName);
+        const base = this.normalizeHelpName(withoutTrailingDescriptor);
+        const singular = base.endsWith('s') ? base.slice(0, -1) : base;
+        const withoutKnownSuffixes = HELP_DESCRIPTOR_SUFFIXES.reduce((value, suffix) => {
+            return value.endsWith(suffix) ? value.slice(0, -suffix.length) : value;
+        }, base);
+        return Array.from(new Set([normalized, base, singular, withoutKnownSuffixes].filter(Boolean)));
+    }
+
+    static normalizeHelpDocPath(path) {
+        const filename = path.split('/').at(-1) ?? path;
+        const stem = filename.replace(/\.md$/i, '');
+        return this.normalizeHelpName(stem)
+            .replace(/^readme/, '')
+            .replace(/generator$/, '');
+    }
+
+    static normalizeHelpName(value) {
+        return value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z]/g, '')
+            .toLowerCase();
     }
 
     static parseMarkdown(md) {

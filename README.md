@@ -132,6 +132,12 @@ Useful controls:
 
 ---
 
+## Roadmap
+
+See [`docs/roadmap.md`](docs/roadmap.md) for the current project plan: documentation hygiene, registry cleanup, shared desktop/mobile app logic, plotter diagnostics, gallery refresh, and release discipline.
+
+---
+
 ## Testing
 
 ```bash

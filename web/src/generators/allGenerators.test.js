@@ -1,74 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { GenerativeRibbon } from './GenerativeRibbon.js';
-import { FlowFieldGenerator } from './FlowFieldGenerator.js';
-import { CirclePackingGenerator } from './CirclePackingGenerator.js';
-import { LSystemGenerator } from './LSystemGenerator.js';
-import { ReactionDiffusionGenerator } from './ReactionDiffusionGenerator.js';
-import { HarmonographGenerator } from './HarmonographGenerator.js';
-import { PhyllotaxisGenerator } from './PhyllotaxisGenerator.js';
-import { StrangeAttractorsGenerator } from './StrangeAttractorsGenerator.js';
-import { TruchetTilesGenerator } from './TruchetTilesGenerator.js';
-import { TwistedMoireGenerator } from './TwistedMoireGenerator.js';
-import { VoronoiRipplesGenerator } from './VoronoiRipplesGenerator.js';
-import { PipeNetworkGenerator } from './PipeNetworkGenerator.js';
-import { ParametricGridGenerator } from './ParametricGridGenerator.js';
-import { MagneticFieldGenerator } from './MagneticFieldGenerator.js';
-import { FourierSeriesGenerator } from './FourierSeriesGenerator.js';
-import { MazeGenerator } from './MazeGenerator.js';
-import { SpirographGenerator } from './SpirographGenerator.js';
-import { PenroseTilingGenerator } from './PenroseTilingGenerator.js';
-import { WaveInterferenceGenerator } from './WaveInterferenceGenerator.js';
-import { ChladniPatternGenerator } from './ChladniPatternGenerator.js';
-import { CelticKnotGenerator } from './CelticKnotGenerator.js';
-import { ContourMapGenerator } from './ContourMapGenerator.js';
-import { CapsuleInterferenceGenerator } from './CapsuleInterferenceGenerator.js';
-import { FoldedCrystalGenerator } from './FoldedCrystalGenerator.js';
-import { CrumpledMeshGenerator } from './CrumpledMeshGenerator.js';
-import { FaultLinesGenerator } from './FaultLinesGenerator.js';
-import { ThreadLoomGenerator } from './ThreadLoomGenerator.js';
-import { BotanicalCircuitGenerator } from './BotanicalCircuitGenerator.js';
-import { BotanicalGestureGenerator } from './BotanicalGestureGenerator.js';
-import { PaperMemoryGenerator } from './PaperMemoryGenerator.js';
-import { MechanicalRainGenerator } from './MechanicalRainGenerator.js';
-import { ArchiveShardsGenerator } from './ArchiveShardsGenerator.js';
-import { ResonantTopographyGenerator } from './ResonantTopographyGenerator.js';
+import { createGeneratorInstances } from './generatorRegistry.js';
 
-const allGenerators = [
-    new GenerativeRibbon(),
-    new FlowFieldGenerator(),
-    new CirclePackingGenerator(),
-    new LSystemGenerator(),
-    new ReactionDiffusionGenerator(),
-    new HarmonographGenerator(),
-    new PhyllotaxisGenerator(),
-    new StrangeAttractorsGenerator(),
-    new TruchetTilesGenerator(),
-    new TwistedMoireGenerator(),
-    new VoronoiRipplesGenerator(),
-    new PipeNetworkGenerator(),
-    new ParametricGridGenerator(),
-    new MagneticFieldGenerator(),
-    new FourierSeriesGenerator(),
-    new MazeGenerator(),
-    new SpirographGenerator(),
-    new PenroseTilingGenerator(),
-    new WaveInterferenceGenerator(),
-    new ChladniPatternGenerator(),
-    new CelticKnotGenerator(),
-    new ContourMapGenerator(),
-    new CapsuleInterferenceGenerator(),
-    new FoldedCrystalGenerator(),
-    new CrumpledMeshGenerator(),
-    new FaultLinesGenerator(),
-    new ThreadLoomGenerator(),
-    new BotanicalCircuitGenerator(),
-    new BotanicalGestureGenerator(),
-    new PaperMemoryGenerator(),
-    new MechanicalRainGenerator(),
-    new ArchiveShardsGenerator(),
-    new ResonantTopographyGenerator(),
-];
+const allGenerators = createGeneratorInstances();
 
 function buildDefaultParams(generator) {
     const params = {

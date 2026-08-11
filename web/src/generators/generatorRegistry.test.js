@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -9,6 +11,7 @@ import {
   toggleFavoriteGeneratorId,
   rememberRecentGeneratorId,
 } from './generatorRegistry.js';
+import { HelpSystem } from '../core/HelpSystem.js';
 
 describe('generator registry library browsing', () => {
   it('registers every generator with category, tags, and description metadata', () => {
@@ -37,6 +40,27 @@ describe('generator registry library browsing', () => {
     expect(instances[0].getDisplayName()).toBe(generatorRegistry[0].name);
     expect(instances.at(-1).getDisplayName()).toBe('Resonant Topography');
     expect(instances.map((generator) => generator.getDisplayName())).toContain('Botanical Gesture');
+  });
+
+  it('keeps all-generator smoke tests sourced from the registry', () => {
+    const testSource = readFileSync(new URL('./allGenerators.test.js', import.meta.url), 'utf8');
+    expect(testSource).toContain("import { createGeneratorInstances } from './generatorRegistry.js';");
+    expect(testSource).not.toMatch(/import \{ .*Generator.* \} from '\.\/.+Generator\.js';/);
+  });
+
+  it('resolves ambiguous display names to their own help files', () => {
+    expect(HelpSystem.getHelpPath('Botanical Circuit')).toContain('Readme_BotanicalCircuitGenerator.md');
+    expect(HelpSystem.getHelpPath('Botanical Gesture')).toContain('Readme_BotanicalGestureGenerator.md');
+    expect(HelpSystem.getHelpPath('Flow Field (Perlin)')).toContain('Readme_FlowFieldGenerator.md');
+    expect(HelpSystem.getHelpPath('L-System Fractal')).toContain('Readme_LSystemGenerator.md');
+  });
+
+  it('has help documentation for every registered generator', () => {
+    for (const entry of generatorRegistry) {
+      const help = HelpSystem.getHelpContent(entry.name);
+      expect(help, entry.name).not.toContain('No Help Found');
+      expect(help, entry.name).toContain('markdown-body');
+    }
   });
 
   it('persists favorites and recents through localStorage-compatible storage', () => {
