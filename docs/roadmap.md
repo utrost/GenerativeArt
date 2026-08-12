@@ -235,13 +235,13 @@ npm run build
 
 **Exit criteria:** Users can see whether an SVG is simple, bounded, layered, and plotter-friendly before downloading.
 
-## Task 3.1 — Add SVG metrics utility
+## Task 3.1 — Add SVG metrics utility ✅
 
 **Objective:** Compute lightweight plotter metrics from generated SVG content.
 
-**Files:**
-- Create: `web/src/core/SvgMetrics.js`
-- Add: `web/src/core/SvgMetrics.test.js`
+**Implemented files:**
+- `web/src/core/SvgMetrics.js`
+- `web/src/core/SvgMetrics.test.js`
 
 **Initial metrics:**
 - page width/height from SVG attributes/viewBox
@@ -253,15 +253,19 @@ npm run build
 - bounding box for parseable line/simple-path elements
 - unparseable element count
 
-**Non-goals for first slice:**
-- Do not implement full SVG path parsing for curves/arcs.
-- Do not estimate pen-up travel yet unless simple to derive from existing optimized layer order.
+**Boundary:**
+- No full SVG path parser yet; curve/arc paths are counted as unparseable for length/bounds.
+- SVGs without `layer_*` groups still get document-level drawable metrics.
+- Nested groups inside `layer_*` groups are included in per-layer counts.
+- Pen-up travel is intentionally not estimated in this slice.
 
-**Verification:**
+**Verification completed:**
 
 ```bash
 cd web
 npm test -- src/core/SvgMetrics.test.js
+npm test
+npm run build
 ```
 
 ## Task 3.2 — Show export diagnostics in the UI
