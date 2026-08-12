@@ -89,4 +89,25 @@ describe('analyzeSvgMetrics', () => {
     expect(metrics.elements.totalDrawable).toBe(2);
     expect(metrics.length.parseable).toBeCloseTo(15, 5);
   });
+
+  it('handles relative line commands in simple paths', () => {
+    const metrics = analyzeSvgMetrics("<svg viewBox='0 0 100 100'><g id='layer_1'><path d='M 10 10 l 5 0 l 0 5' /></g></svg>");
+
+    expect(metrics.length.parseable).toBeCloseTo(10, 5);
+    expect(metrics.bounds).toEqual({ minX: 10, minY: 10, maxX: 15, maxY: 15, withinPage: true });
+  });
+
+  it('does not count move commands between simple subpaths as drawn length', () => {
+    const metrics = analyzeSvgMetrics("<svg viewBox='0 0 100 100'><g id='layer_1'><path d='M 0 0 L 10 0 M 50 0 L 60 0' /></g></svg>");
+
+    expect(metrics.length.parseable).toBeCloseTo(20, 5);
+    expect(metrics.bounds).toEqual({ minX: 0, minY: 0, maxX: 60, maxY: 0, withinPage: true });
+  });
+
+  it('reports parser limitations so later UI can label metrics as best-effort', () => {
+    const metrics = analyzeSvgMetrics(sampleSvg);
+
+    expect(metrics.limitations).toContain('Transforms are not applied to metrics.');
+    expect(metrics.limitations).toContain('Only line elements and simple M/L path commands contribute to length and bounds.');
+  });
 });

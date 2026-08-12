@@ -1,7 +1,13 @@
 const SVG_TAG_RE = /<svg\b([^>]*)>/i;
 const DRAWABLE_RE = /<(line|path|circle|ellipse|polyline|polygon|rect)\b([^>]*)\/?\s*>/gi;
 const ATTR_RE = /([a-zA-Z_:][\w:.-]*)=['"]([^'"]*)['"]/g;
-const NUMBER_RE = /-?\d+(?:\.\d+)?/g;
+const NUMBER_RE = /[+-]?(?:\d+\.\d*|\.\d+|\d+)(?:e[+-]?\d+)?/gi;
+const PATH_TOKEN_RE = /[MLml]|[+-]?(?:\d+\.\d*|\.\d+|\d+)(?:e[+-]?\d+)?/gi;
+
+const METRIC_LIMITATIONS = [
+  'Transforms are not applied to metrics.',
+  'Only line elements and simple M/L path commands contribute to length and bounds.',
+];
 
 export function analyzeSvgMetrics(svg) {
   const page = readPage(svg);
@@ -46,6 +52,7 @@ export function analyzeSvgMetrics(svg) {
       parseable: parseableLength,
     },
     bounds: buildBounds(boundsPoints, page),
+    limitations: [...METRIC_LIMITATIONS],
   };
 }
 
@@ -147,20 +154,53 @@ function parseLine(attrs) {
 }
 
 function parseSimplePath(pathData) {
-  if (!pathData || /[^\s\d.,MLml-]/.test(pathData)) return null;
-  const numbers = parseNumbers(pathData);
-  if (numbers.length < 4 || numbers.length % 2 !== 0) return null;
+  if (!pathData || /[^\s\d.,MLmleE+-]/.test(pathData)) return null;
+  const tokens = pathData.match(PATH_TOKEN_RE) ?? [];
+  if (!tokens.length) return null;
 
   const points = [];
-  for (let i = 0; i < numbers.length; i += 2) {
-    points.push([numbers[i], numbers[i + 1]]);
+  let length = 0;
+  let command = null;
+  let cursor = null;
+  let index = 0;
+
+  while (index < tokens.length) {
+    const token = tokens[index];
+    if (isPathCommand(token)) {
+      command = token;
+      index += 1;
+      continue;
+    }
+    if (!command) return null;
+
+    const xToken = tokens[index];
+    const yToken = tokens[index + 1];
+    if (xToken === undefined || yToken === undefined || isPathCommand(xToken) || isPathCommand(yToken)) return null;
+
+    const rawPoint = [Number(xToken), Number(yToken)];
+    if (!rawPoint.every(Number.isFinite)) return null;
+    const point = command === command.toLowerCase() && cursor
+      ? [cursor[0] + rawPoint[0], cursor[1] + rawPoint[1]]
+      : rawPoint;
+
+    points.push(point);
+    if (command.toLowerCase() === 'l' && cursor) {
+      length += distance(cursor, point);
+    }
+    cursor = point;
+
+    // SVG treats extra coordinate pairs after M/m as implicit L/l commands.
+    if (command === 'M') command = 'L';
+    if (command === 'm') command = 'l';
+    index += 2;
   }
 
-  let length = 0;
-  for (let i = 1; i < points.length; i += 1) {
-    length += distance(points[i - 1], points[i]);
-  }
+  if (points.length < 2) return null;
   return { points, length };
+}
+
+function isPathCommand(token) {
+  return /^[MLml]$/.test(token);
 }
 
 function parseNumbers(value = '') {
