@@ -248,6 +248,27 @@ body {
     backdrop-filter: blur(12px);
 }
 
+.mobile-svg-diagnostics {
+    grid-column: 1 / -1;
+    min-height: 1.1rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-svg-diagnostics[data-status="ok"] {
+    color: var(--text-primary);
+}
+
+.mobile-svg-diagnostics[data-status="error"] {
+    color: #fca5a5;
+}
+
 button,
 select,
 input[type="number"] {

@@ -1,5 +1,6 @@
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
+import { buildSvgDiagnosticsViewModel } from './core/SvgDiagnostics.js';
 import { registerServiceWorker } from './registerServiceWorker.js';
 import {
   CATEGORY_LABELS,
@@ -30,6 +31,7 @@ const controlsContainer = document.getElementById('controls-container');
 const artOutput = document.getElementById('art-output');
 const generateBtn = document.getElementById('btn-generate');
 const downloadBtn = document.getElementById('btn-download');
+const svgDiagnosticsEl = document.getElementById('svg-diagnostics');
 const generatorSearchEl = document.getElementById('generator-search');
 const categoryFiltersEl = document.getElementById('generator-category-filters');
 const recentEl = document.getElementById('generator-recent');
@@ -543,6 +545,7 @@ function generateArt() {
   try {
     const output = activeGenerator.generate(currentParams);
     artOutput.innerHTML = output;
+    updateSvgDiagnostics(output);
 
     // Adjust SVG ViewBox to ensure it fits or centers?
     // The Generators usually return SVG with width/height set in the string.
@@ -550,7 +553,16 @@ function generateArt() {
   } catch (e) {
     console.error("Generation failed", e);
     artOutput.innerHTML = `<div style="color:red">Error: ${e.message}</div>`;
+    updateSvgDiagnostics(null);
   }
+}
+
+function updateSvgDiagnostics(svg) {
+  if (!svgDiagnosticsEl) return;
+  const viewModel = buildSvgDiagnosticsViewModel(svg);
+  svgDiagnosticsEl.textContent = viewModel.text;
+  svgDiagnosticsEl.title = viewModel.title;
+  svgDiagnosticsEl.dataset.status = viewModel.status;
 }
 
 function downloadSVG() {

@@ -384,6 +384,25 @@ input[type="number"] {
     margin-top: auto;
 }
 
+.svg-diagnostics {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.65rem;
+    color: var(--text-secondary);
+    background: rgba(15, 23, 42, 0.45);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.svg-diagnostics[data-status="ok"] {
+    color: var(--text-primary);
+}
+
+.svg-diagnostics[data-status="error"] {
+    color: #fca5a5;
+}
+
 button {
     padding: 0.75rem;
     border-radius: 0.5rem;

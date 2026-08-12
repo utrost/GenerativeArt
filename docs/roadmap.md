@@ -268,7 +268,7 @@ npm test
 npm run build
 ```
 
-## Task 3.2 — Show export diagnostics in the UI
+## Task 3.2 — Show export diagnostics in the UI ✅
 
 **Objective:** Surface metrics near the Generate/Download controls.
 
@@ -289,6 +289,33 @@ Layers: 3 · Elements: 842 · Parseable length: 18.4 m · Bounds: within page
 - Empty/error state is clear.
 - Metrics update after generation.
 - Mobile UI stays compact.
+
+**Implemented files:**
+- `web/src/core/SvgDiagnostics.js`
+- `web/src/core/SvgDiagnostics.test.js`
+- `web/index.html`
+- `web/mobile.html`
+- `web/src/main.js`
+- `web/src/mobile.js`
+- `web/src/ui/style.css`
+- `web/src/ui/mobile.css`
+- `web/src/ui/style.test.js`
+- `web/src/ui/mobile-layout.test.js`
+
+**Implemented UI copy:**
+- Desktop: `Layers: 0 · Elements: 5 · Parseable length: 406.3 m · Bounds: exceeds page`
+- Mobile compact: `0 layers · 5 elems · 406.3 m · exceeds page`
+
+**Verification completed:**
+
+```bash
+cd web
+npm test -- src/core/SvgDiagnostics.test.js src/ui/style.test.js src/ui/mobile-layout.test.js
+npm test
+npm run build
+```
+
+Browser smoke verified desktop and mobile diagnostics update after generation. The mobile diagnostics line renders above the footer buttons without overlap; long text is intentionally single-line ellipsized on narrow screens.
 
 ## Task 3.3 — Add warnings for likely plotting problems
 

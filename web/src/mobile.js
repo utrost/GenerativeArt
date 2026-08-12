@@ -1,5 +1,6 @@
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
+import { buildSvgDiagnosticsViewModel } from './core/SvgDiagnostics.js';
 import { registerServiceWorker } from './registerServiceWorker.js';
 import {
   CATEGORY_LABELS,
@@ -46,6 +47,7 @@ const controlsSheet = document.getElementById('mobile-controls-sheet');
 const sheetBackdrop = document.getElementById('mobile-sheet-backdrop');
 const downloadBtn = document.getElementById('btn-mobile-download');
 const helpBtn = document.getElementById('btn-mobile-help');
+const svgDiagnosticsEl = document.getElementById('mobile-svg-diagnostics');
 
 function init() {
   renderGeneratorPicker();
@@ -355,11 +357,22 @@ function generateArt() {
   currentParams.height = dimensions.height;
 
   try {
-    artOutput.innerHTML = activeGenerator.generate(currentParams);
+    const output = activeGenerator.generate(currentParams);
+    artOutput.innerHTML = output;
+    updateSvgDiagnostics(output);
   } catch (error) {
     console.error('Generation failed', error);
     artOutput.innerHTML = `<div class="mobile-error">Error: ${error.message}</div>`;
+    updateSvgDiagnostics(null);
   }
+}
+
+function updateSvgDiagnostics(svg) {
+  if (!svgDiagnosticsEl) return;
+  const viewModel = buildSvgDiagnosticsViewModel(svg);
+  svgDiagnosticsEl.textContent = viewModel.compactText;
+  svgDiagnosticsEl.title = viewModel.title;
+  svgDiagnosticsEl.dataset.status = viewModel.status;
 }
 
 function downloadSVG() {

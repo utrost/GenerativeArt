@@ -37,6 +37,19 @@ describe('mobile web app entry point', () => {
     expect(html).toContain('id="mobile-generator-list"');
   });
 
+  it('surfaces compact plotter diagnostics near mobile export actions', () => {
+    const html = read('mobile.html');
+    const css = read('src/ui/mobile.css');
+    const js = read('src/mobile.js');
+
+    expect(html).toContain('id="mobile-svg-diagnostics"');
+    expect(html).toMatch(/<p\s+id="mobile-svg-diagnostics"[^>]*aria-live="polite"/);
+    expect(css).toMatch(/\.mobile-svg-diagnostics\s*{[^}]*font-size\s*:\s*0\.72rem/s);
+    expect(js).toContain("import { buildSvgDiagnosticsViewModel } from './core/SvgDiagnostics.js';");
+    expect(js).toContain('updateSvgDiagnostics(output);');
+    expect(js).toContain('updateSvgDiagnostics(null);');
+  });
+
   it('supports polished bottom-sheet interactions for touch devices', () => {
     const css = read('src/ui/mobile.css');
     const js = read('src/mobile.js');
