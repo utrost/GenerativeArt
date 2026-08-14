@@ -12,7 +12,7 @@ The former Java/Swing application has been retired to keep the generator code in
 
 ## Available Generators
 
-The framework currently includes **33 generative algorithms**:
+The framework currently includes **34 generative algorithms**:
 
 1. **Generative Ribbon**: Lofted 3D twisted ribbons using Moiré interference patterns.
 2. **Flow Fields (Perlin)**: Particle systems steered by noise fields for organic textures.
@@ -47,6 +47,7 @@ The framework currently includes **33 generative algorithms**:
 31. **Mechanical Rain**: Falling trajectories deflected by pins, paddles, wind, and splash marks.
 32. **Archive Shards**: Fragmented document rectangles clustered by hidden metadata axes and links.
 33. **Resonant Topography**: Topographic contours broken by standing-wave resonance nodes.
+34. **Playful Strategies**: A switchable trio of Kelp Forest, Orbit Weave, and Signal Weather strategies with strategy-specific controls.
 
 ---
 

@@ -15,7 +15,7 @@ GenerativeArt should stay focused on **plotter-oriented generative SVG** rather 
 ## Current state summary
 
 - Web-only Vite app; former Java/Swing implementation is retired.
-- 33 registered generators in `web/src/generators/generatorRegistry.js`.
+- 34 registered generators in `web/src/generators/generatorRegistry.js`.
 - Desktop shell: `web/src/main.js`.
 - Mobile shell: `web/src/mobile.js`.
 - Core abstractions:
@@ -47,21 +47,21 @@ GenerativeArt should stay focused on **plotter-oriented generative SVG** rather 
 
 ## Task 0.1 — Fix generator count and project metadata
 
-**Objective:** Make public-facing descriptions match the actual 33-generator registry.
+**Objective:** Make public-facing descriptions match the actual 34-generator registry.
 
 **Files / locations:**
-- GitHub repository description: currently says “32 algorithms”.
-- `README.md`: already says 33; keep as source text for the updated description.
+- GitHub repository description: may still have a stale exact algorithm count.
+- `README.md`: already says 34; keep as source text for the updated description.
 
 **Steps:**
 1. Run `gh repo view utrost/GenerativeArt --json description`.
-2. If still stale, update description to mention 33 algorithms or avoid an exact count.
+2. If still stale, update description to mention 34 algorithms or avoid an exact count.
 3. Verify with `gh repo view utrost/GenerativeArt --json description`.
 
 **Suggested wording:**
 
 ```text
-Plotter-oriented SVG generative art studio — 33 algorithms, Vite web app, PWA/mobile UI.
+Plotter-oriented SVG generative art studio — 34 algorithms, Vite web app, PWA/mobile UI.
 ```
 
 ## Task 0.2 — Fix contribution instructions

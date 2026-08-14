@@ -1,6 +1,7 @@
 import { PaperSize, getPaperDimensionsPx } from './core/PaperSize';
 import { HelpSystem } from './core/HelpSystem';
 import { buildSvgDiagnosticsViewModel } from './core/SvgDiagnostics.js';
+import { isParameterDefinitionVisible } from './core/ParameterVisibility.js';
 import { registerServiceWorker } from './registerServiceWorker.js';
 import {
   CATEGORY_LABELS,
@@ -463,8 +464,7 @@ function renderControls() {
 }
 
 function isDefinitionVisible(definition, params) {
-  if (!definition.appliesTo || definition.appliesTo.length === 0) return true;
-  return definition.appliesTo.includes(params.constructionMode);
+  return isParameterDefinitionVisible(definition, params);
 }
 
 function updateControlsFromParams() {

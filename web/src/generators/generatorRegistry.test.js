@@ -15,7 +15,7 @@ import { HelpSystem } from '../core/HelpSystem.js';
 
 describe('generator registry library browsing', () => {
   it('registers every generator with category, tags, and description metadata', () => {
-    expect(generatorRegistry).toHaveLength(33);
+    expect(generatorRegistry).toHaveLength(34);
     expect(new Set(generatorRegistry.map((entry) => entry.id)).size).toBe(generatorRegistry.length);
 
     for (const entry of generatorRegistry) {
@@ -38,7 +38,7 @@ describe('generator registry library browsing', () => {
     const instances = createGeneratorInstances();
     expect(instances).toHaveLength(generatorRegistry.length);
     expect(instances[0].getDisplayName()).toBe(generatorRegistry[0].name);
-    expect(instances.at(-1).getDisplayName()).toBe('Resonant Topography');
+    expect(instances.at(-1).getDisplayName()).toBe('Playful Strategies');
     expect(instances.map((generator) => generator.getDisplayName())).toContain('Botanical Gesture');
   });
 

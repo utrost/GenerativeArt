@@ -31,6 +31,7 @@ import { PaperMemoryGenerator } from './PaperMemoryGenerator';
 import { MechanicalRainGenerator } from './MechanicalRainGenerator';
 import { ArchiveShardsGenerator } from './ArchiveShardsGenerator';
 import { ResonantTopographyGenerator } from './ResonantTopographyGenerator';
+import { PlayfulStrategiesGenerator } from './PlayfulStrategiesGenerator';
 
 export const CATEGORY_LABELS = [
   'All',
@@ -81,6 +82,7 @@ export const generatorRegistry = [
   meta(() => new MechanicalRainGenerator(), 'Line fields', ['rain', 'deflector', 'physics', 'plotter'], 'Falling trajectories deflected by pins, paddles, and wind.'),
   meta(() => new ArchiveShardsGenerator(), 'Constructed systems / diagrams', ['archive', 'metadata', 'diagram', 'shards', 'links'], 'Fragmented document rectangles clustered by hidden metadata axes.'),
   meta(() => new ResonantTopographyGenerator(), 'Organic / natural systems', ['resonance', 'topography', 'contour', 'chladni', 'plotter'], 'Topographic contours broken by standing-wave resonance nodes.'),
+  meta(() => new PlayfulStrategiesGenerator(), 'Plotter studies', ['strategy', 'playful', 'kelp', 'orbit', 'weather', 'plotter'], 'Three switchable playful plotter strategies with mode-specific controls.'),
 ];
 
 const FAVORITES_KEY = 'genart:favorites';
