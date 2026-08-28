@@ -218,13 +218,21 @@ function buildBounds(points, page) {
     return null;
   }
 
-  const xs = points.map((point) => point[0]);
-  const ys = points.map((point) => point[1]);
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const point of points) {
+    minX = Math.min(minX, point[0]);
+    minY = Math.min(minY, point[1]);
+    maxX = Math.max(maxX, point[0]);
+    maxY = Math.max(maxY, point[1]);
+  }
   const bounds = {
-    minX: Math.min(...xs),
-    minY: Math.min(...ys),
-    maxX: Math.max(...xs),
-    maxY: Math.max(...ys),
+    minX,
+    minY,
+    maxX,
+    maxY,
   };
 
   return {

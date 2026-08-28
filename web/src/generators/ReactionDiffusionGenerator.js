@@ -8,7 +8,7 @@ export class ReactionDiffusionGenerator extends Generator {
         this.width = 200;
         this.height = 200;
         this.scale = 2;
-        this.iterations = 8000;
+        this.iterations = 2000;
         this.da = 1.0;
         this.db = 0.5;
         this.f = 0.055;
@@ -28,7 +28,7 @@ export class ReactionDiffusionGenerator extends Generator {
             ParameterDefinition.selection("Preset", "Custom", ["Custom", "Coral Growth", "Mitosis", "Mazes", "Moving Spots"], "Select a predefined style"),
             ParameterDefinition.doubleVal("Feed Rate", 0.055, 0.01, 0.1, "Feed rate (f)"),
             ParameterDefinition.doubleVal("Kill Rate", 0.062, 0.01, 0.1, "Kill rate (k)"),
-            ParameterDefinition.integer("Iterations", 8000, 1000, 20000, "Simulation steps"),
+            ParameterDefinition.integer("Iterations", 2000, 1000, 20000, "Simulation steps; higher values are slower and best triggered with Generate"),
             ParameterDefinition.doubleVal("Threshold", 0.25, 0.1, 0.9, "Start iso-contour threshold"),
             ParameterDefinition.integer("Scale", 2, 1, 5, "Output scale"),
             ParameterDefinition.integer("Colors", 1, 1, 6, "Number of layers (contours)")

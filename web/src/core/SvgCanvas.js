@@ -1,6 +1,7 @@
 const LINE_RE = /x1='([\d.-]+)'\s*y1='([\d.-]+)'\s*x2='([\d.-]+)'\s*y2='([\d.-]+)'/;
 const PATH_D_RE = /d='([^']*)'/;
 const NUM_RE = /-?\d+(?:\.\d+)?/g;
+const OPTIMIZATION_ELEMENT_LIMIT = 1000;
 
 export class SvgCanvas {
     constructor(width, height, numLayers) {
@@ -13,10 +14,15 @@ export class SvgCanvas {
         // Standard plotter colors used for SVG layer previews.
         this.layerColors = ["black", "#E31A1C", "#1F78B4", "#33A02C", "#FF7F00", "#6A3D9A"];
         this.strokeWidth = 1.0;
+        this.optimizePaths = true;
     }
 
     setStrokeWidth(width) {
         this.strokeWidth = width;
+    }
+
+    setOptimizePaths(enabled) {
+        this.optimizePaths = Boolean(enabled);
     }
 
     addPath(layerIndex, pathData) {
@@ -41,7 +47,8 @@ export class SvgCanvas {
         for (let i = 0; i < this.layers.length; i++) {
             const color = this.layerColors[i % this.layerColors.length];
             svg += `  <g id='layer_${i + 1}' stroke='${color}' fill='none' stroke-width='${this.strokeWidth.toFixed(2)}' clip-path='url(#pageClip)'>\n`;
-            const optimized = optimizeLayer(this.layers[i]);
+            const shouldOptimize = this.optimizePaths && this.layers[i].length <= OPTIMIZATION_ELEMENT_LIMIT;
+            const optimized = shouldOptimize ? optimizeLayer(this.layers[i]) : this.layers[i];
             svg += optimized.join('\n');
             svg += `\n  </g>\n`;
         }

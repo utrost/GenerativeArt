@@ -117,4 +117,19 @@ describe('SvgCanvas', () => {
         expect(svg).toContain("A 50 50 0 0 0");
         expect(svg).not.toContain('L 0,0');
     });
+
+    it('bypasses nearest-neighbor optimization for very large layers to keep interactive rendering bounded', () => {
+        const canvas = new SvgCanvas(200, 200, 1);
+        canvas.addLine(0, 190, 190, 191, 191);
+        for (let i = 0; i < 1200; i++) {
+            canvas.addLine(0, i % 100, Math.floor(i / 100), (i % 100) + 1, Math.floor(i / 100));
+        }
+
+        const start = performance.now();
+        const svg = canvas.toSvg();
+        const elapsedMs = performance.now() - start;
+
+        expect(elapsedMs).toBeLessThan(200);
+        expect(svg.indexOf("x1='190.00'")).toBeLessThan(svg.indexOf("x1='0.00'"));
+    });
 });

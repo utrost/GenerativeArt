@@ -64,9 +64,7 @@ function init() {
   helpBtn.addEventListener('click', showHelp);
 
   // Auto-resize
-  window.addEventListener('resize', debounce(() => {
-    generateArt();
-  }, 500));
+  window.addEventListener('resize', debounce(scheduleGenerateArt, 500));
 }
 
 function setupMobileRedirectPrompt() {
@@ -164,7 +162,7 @@ function renderGlobalSettings() {
 
   select.addEventListener('change', (e) => {
     currentPaperSize = e.target.value;
-    generateArt();
+    scheduleGenerateArt();
   });
 
   settingsDiv.appendChild(label);
@@ -306,6 +304,9 @@ function selectGenerator(gen) {
 
 let inputElements = {};
 let isUpdatingUI = false;
+let pendingGenerateTimer = null;
+let pendingGenerateFrame = null;
+let generationSequence = 0;
 
 function renderControls() {
   controlsContainer.innerHTML = '';
@@ -342,9 +343,9 @@ function renderControls() {
         const needsRefresh = activeGenerator.onParameterChanged(def.name, val, currentParams);
         if (needsRefresh) {
             renderControls();
-            generateArt();
+            scheduleGenerateArt();
         } else {
-            generateArt();
+            scheduleGenerateArt();
         }
     };
 
@@ -485,7 +486,7 @@ function updateControlsFromParams() {
         }
     } finally {
         isUpdatingUI = false;
-        generateArt(); // Re-render the canvas with the new preset parameters
+        scheduleGenerateArt(); // Re-render the canvas with the new preset parameters
     }
 }
 
@@ -521,7 +522,7 @@ function renderGlobalSettingsInternal() {
 
   select.addEventListener('change', (e) => {
     currentPaperSize = e.target.value;
-    generateArt();
+    scheduleGenerateArt();
   });
 
   settingsDiv.appendChild(label);
@@ -555,6 +556,27 @@ function generateArt() {
     artOutput.innerHTML = `<div style="color:red">Error: ${e.message}</div>`;
     updateSvgDiagnostics(null);
   }
+}
+
+function scheduleGenerateArt(delay = 120) {
+  generationSequence += 1;
+  const sequence = generationSequence;
+
+  if (pendingGenerateTimer !== null) {
+    clearTimeout(pendingGenerateTimer);
+  }
+  if (pendingGenerateFrame !== null) {
+    cancelAnimationFrame(pendingGenerateFrame);
+    pendingGenerateFrame = null;
+  }
+
+  pendingGenerateTimer = window.setTimeout(() => {
+    pendingGenerateTimer = null;
+    pendingGenerateFrame = requestAnimationFrame(() => {
+      pendingGenerateFrame = null;
+      if (sequence === generationSequence) generateArt();
+    });
+  }, delay);
 }
 
 function updateSvgDiagnostics(svg) {

@@ -86,6 +86,7 @@ export class WaveInterferenceGenerator extends Generator {
         const height = params["height"] || 1000;
 
         const canvas = new SvgCanvas(width, height, numColors);
+        canvas.setOptimizePaths(false);
         const rand = new SeededRandom(seed);
 
         // Generate wave source positions
@@ -200,44 +201,49 @@ export class WaveInterferenceGenerator extends Generator {
         if (segments.length === 0) return [];
 
         const paths = [];
+        const endpointMap = new Map();
         const used = new Array(segments.length).fill(false);
-        const EPS = 0.5;
+        const keyFor = (point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
 
-        const near = (p1, p2) => Math.abs(p1.x - p2.x) < EPS && Math.abs(p1.y - p2.y) < EPS;
+        const addEndpoint = (point, segmentIndex, endName) => {
+            const key = keyFor(point);
+            if (!endpointMap.has(key)) endpointMap.set(key, []);
+            endpointMap.get(key).push({ segmentIndex, endName });
+        };
+
+        segments.forEach((segment, index) => {
+            addEndpoint(segment.a, index, 'a');
+            addEndpoint(segment.b, index, 'b');
+        });
+
+        const takeConnected = (point) => {
+            const candidates = endpointMap.get(keyFor(point)) || [];
+            while (candidates.length) {
+                const candidate = candidates.pop();
+                if (!used[candidate.segmentIndex]) return candidate;
+            }
+            return null;
+        };
 
         for (let i = 0; i < segments.length; i++) {
             if (used[i]) continue;
             used[i] = true;
-
             const path = [segments[i].a, segments[i].b];
-            let changed = true;
 
-            while (changed) {
-                changed = false;
-                for (let j = 0; j < segments.length; j++) {
-                    if (used[j]) continue;
-                    const seg = segments[j];
-                    const last = path[path.length - 1];
-                    const first = path[0];
+            let candidate = takeConnected(path[path.length - 1]);
+            while (candidate) {
+                used[candidate.segmentIndex] = true;
+                const segment = segments[candidate.segmentIndex];
+                path.push(candidate.endName === 'a' ? segment.b : segment.a);
+                candidate = takeConnected(path[path.length - 1]);
+            }
 
-                    if (near(last, seg.a)) {
-                        path.push(seg.b);
-                        used[j] = true;
-                        changed = true;
-                    } else if (near(last, seg.b)) {
-                        path.push(seg.a);
-                        used[j] = true;
-                        changed = true;
-                    } else if (near(first, seg.a)) {
-                        path.unshift(seg.b);
-                        used[j] = true;
-                        changed = true;
-                    } else if (near(first, seg.b)) {
-                        path.unshift(seg.a);
-                        used[j] = true;
-                        changed = true;
-                    }
-                }
+            candidate = takeConnected(path[0]);
+            while (candidate) {
+                used[candidate.segmentIndex] = true;
+                const segment = segments[candidate.segmentIndex];
+                path.unshift(candidate.endName === 'a' ? segment.b : segment.a);
+                candidate = takeConnected(path[0]);
             }
 
             paths.push(path);
