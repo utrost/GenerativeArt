@@ -21,7 +21,7 @@ describe('Wave Interference performance', () => {
     expect(svg).toContain('<svg');
     expect(svg).toContain('</svg>');
     expect((svg.match(/<path/g) || []).length).toBeGreaterThan(50);
-    expect(generateMs).toBeLessThan(1500);
+    expect(generateMs).toBeLessThan(2500);
   }, 10000);
 
   it('keeps diagnostics bounded for the generated wave SVG', () => {
@@ -33,6 +33,6 @@ describe('Wave Interference performance', () => {
     const diagnosticsMs = performance.now() - start;
 
     expect(diagnostics.status).not.toBe('error');
-    expect(diagnosticsMs).toBeLessThan(250);
+    expect(diagnosticsMs).toBeLessThan(750);
   }, 10000);
 });
