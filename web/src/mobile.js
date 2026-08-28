@@ -27,6 +27,7 @@ let isUpdatingUI = false;
 let pendingGenerateTimer = null;
 let pendingGenerateFrame = null;
 let generationSequence = 0;
+let hasGeneratedCurrentSelection = false;
 
 const MOBILE_GENERATION_DELAY_MS = 120;
 
@@ -110,7 +111,7 @@ function selectGenerator(generator) {
 
   renderControls();
   renderGeneratorPicker();
-  generateArt();
+  markGeneratorReady(generator);
 }
 
 function createMobileGeneratorCard(entry) {
@@ -334,6 +335,10 @@ function scheduleGenerateArt(delay = MOBILE_GENERATION_DELAY_MS) {
   generationSequence += 1;
   const sequence = generationSequence;
 
+  if (!hasGeneratedCurrentSelection) {
+    return;
+  }
+
   if (pendingGenerateTimer !== null) {
     clearTimeout(pendingGenerateTimer);
   }
@@ -360,10 +365,39 @@ function generateArt() {
     const output = activeGenerator.generate(currentParams);
     artOutput.innerHTML = output;
     updateSvgDiagnostics(output);
+    hasGeneratedCurrentSelection = true;
+    downloadBtn.disabled = false;
   } catch (error) {
     console.error('Generation failed', error);
     artOutput.innerHTML = `<div class="mobile-error">Error: ${error.message}</div>`;
     updateSvgDiagnostics(null);
+    hasGeneratedCurrentSelection = false;
+    downloadBtn.disabled = true;
+  }
+}
+
+function markGeneratorReady(generator = activeGenerator) {
+  generationSequence += 1;
+  if (pendingGenerateTimer !== null) {
+    clearTimeout(pendingGenerateTimer);
+    pendingGenerateTimer = null;
+  }
+  if (pendingGenerateFrame !== null) {
+    cancelAnimationFrame(pendingGenerateFrame);
+    pendingGenerateFrame = null;
+  }
+  hasGeneratedCurrentSelection = false;
+  artOutput.innerHTML = `
+    <div class="empty-preview" role="status">
+      <strong>${generator.getDisplayName()}</strong>
+      <span>Set controls, then tap Generate.</span>
+    </div>
+  `;
+  downloadBtn.disabled = true;
+  if (svgDiagnosticsEl) {
+    svgDiagnosticsEl.textContent = 'Ready — tap Generate';
+    svgDiagnosticsEl.title = 'Generator selection is deferred until Generate is pressed.';
+    svgDiagnosticsEl.dataset.status = 'empty';
   }
 }
 
@@ -376,8 +410,9 @@ function updateSvgDiagnostics(svg) {
 }
 
 function downloadSVG() {
-  const svgContent = artOutput.innerHTML;
-  if (!svgContent) return;
+  const svg = artOutput.querySelector('svg');
+  if (!svg) return;
+  const svgContent = svg.outerHTML;
 
   const blob = new Blob([svgContent], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);

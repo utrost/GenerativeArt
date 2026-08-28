@@ -238,6 +238,24 @@ body {
     height: auto;
 }
 
+.empty-preview {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.empty-preview strong {
+    color: var(--text-primary);
+    font-size: 1.05rem;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .mobile-actions {
     position: sticky;
     bottom: 0;

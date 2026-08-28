@@ -25,6 +25,7 @@ let generatorCategory = 'All';
 let activeGenerator = generators[0];
 let currentParams = {};
 let currentPaperSize = "A4_LANDSCAPE"; // Default
+let hasGeneratedCurrentSelection = false;
 
 const generatorListEl = document.getElementById('generator-list');
 const activeNameEl = document.getElementById('active-generator-name');
@@ -297,9 +298,7 @@ function selectGenerator(gen) {
   });
 
   renderControls();
-
-  // Initial generation
-  generateArt();
+  markGeneratorReady(gen);
 }
 
 let inputElements = {};
@@ -547,6 +546,8 @@ function generateArt() {
     const output = activeGenerator.generate(currentParams);
     artOutput.innerHTML = output;
     updateSvgDiagnostics(output);
+    hasGeneratedCurrentSelection = true;
+    downloadBtn.disabled = false;
 
     // Adjust SVG ViewBox to ensure it fits or centers?
     // The Generators usually return SVG with width/height set in the string.
@@ -555,12 +556,43 @@ function generateArt() {
     console.error("Generation failed", e);
     artOutput.innerHTML = `<div style="color:red">Error: ${e.message}</div>`;
     updateSvgDiagnostics(null);
+    hasGeneratedCurrentSelection = false;
+    downloadBtn.disabled = true;
+  }
+}
+
+function markGeneratorReady(generator = activeGenerator) {
+  generationSequence += 1;
+  if (pendingGenerateTimer !== null) {
+    clearTimeout(pendingGenerateTimer);
+    pendingGenerateTimer = null;
+  }
+  if (pendingGenerateFrame !== null) {
+    cancelAnimationFrame(pendingGenerateFrame);
+    pendingGenerateFrame = null;
+  }
+  hasGeneratedCurrentSelection = false;
+  artOutput.innerHTML = `
+    <div class="empty-preview" role="status">
+      <strong>${generator.getDisplayName()}</strong>
+      <span>Adjust the controls, then press Generate to render the SVG.</span>
+    </div>
+  `;
+  downloadBtn.disabled = true;
+  if (svgDiagnosticsEl) {
+    svgDiagnosticsEl.textContent = 'Ready — no SVG generated yet.';
+    svgDiagnosticsEl.title = 'Generator selection is deferred until Generate is pressed.';
+    svgDiagnosticsEl.dataset.status = 'empty';
   }
 }
 
 function scheduleGenerateArt(delay = 120) {
   generationSequence += 1;
   const sequence = generationSequence;
+
+  if (!hasGeneratedCurrentSelection) {
+    return;
+  }
 
   if (pendingGenerateTimer !== null) {
     clearTimeout(pendingGenerateTimer);
@@ -588,8 +620,9 @@ function updateSvgDiagnostics(svg) {
 }
 
 function downloadSVG() {
-  const svgContent = artOutput.innerHTML;
-  if (!svgContent) return;
+  const svg = artOutput.querySelector('svg');
+  if (!svg) return;
+  const svgContent = svg.outerHTML;
 
   const blob = new Blob([svgContent], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);

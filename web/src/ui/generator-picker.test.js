@@ -42,6 +42,21 @@ describe('generator picker UI contracts', () => {
     expect(js).toContain('scheduleGenerateArt();');
   });
 
+  it('selecting a generator defers SVG work until Generate is pressed', () => {
+    const desktop = readText('src/main.js');
+    const mobile = readText('src/mobile.js');
+
+    expect(desktop).toContain('let hasGeneratedCurrentSelection = false');
+    expect(desktop).toContain('function markGeneratorReady');
+    expect(desktop.match(/function selectGenerator\(gen\) \{[\s\S]*?\n\}/)?.[0]).toContain('markGeneratorReady');
+    expect(desktop.match(/function selectGenerator\(gen\) \{[\s\S]*?\n\}/)?.[0]).not.toContain('generateArt();');
+
+    expect(mobile).toContain('let hasGeneratedCurrentSelection = false');
+    expect(mobile).toContain('function markGeneratorReady');
+    expect(mobile.match(/function selectGenerator\(generator\) \{[\s\S]*?\n\}/)?.[0]).toContain('markGeneratorReady');
+    expect(mobile.match(/function selectGenerator\(generator\) \{[\s\S]*?\n\}/)?.[0]).not.toContain('generateArt();');
+  });
+
   it('README documents generator library browsing controls', () => {
     const readme = readText('../README.md');
     expect(readme).toContain('Generator library');

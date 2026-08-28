@@ -285,6 +285,29 @@ body {
     display: block;
 }
 
+.empty-preview {
+    display: grid;
+    gap: 0.45rem;
+    max-width: 28rem;
+    padding: 1.5rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.empty-preview strong {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.empty-preview span {
+    line-height: 1.35;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 #loading-indicator {
     position: absolute;
     color: var(--accent-color);
